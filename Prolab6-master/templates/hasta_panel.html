@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Diyabet Takip Sistemi - Hasta Paneli">
+  <title>Diyabet Takip Sistemi - Hasta Paneli</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      background: none;
+      overflow-x: hidden;
+    }
+
+    .background-dynamic {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      background: url('../static/image/kou.png') no-repeat center center;
+      background-size: cover;
+      opacity: 0.7;
+      filter: blur(5px);
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+
+    body.dark-mode .background-dynamic {
+      filter: blur(5px) brightness(0.5);
+    }
+
+    @keyframes circularMotion {
+      0% { transform: translate(-50%, -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1.05); }
+      20% { transform: translate(-50%, -50%) translateX(25px) translateY(10px) rotate(0.8deg) scale(1.08); }
+      40% { transform: translate(-50%, -50%) translateX(0px) translateY(25px) rotate(1.2deg) scale(1.1); }
+      60% { transform: translate(-50%, -50%) translateX(-25px) translateY(10px) rotate(0.8deg) scale(1.08); }
+      80% { transform: translate(-50%, -50%) translateX(0px) translateY(-15px) rotate(0.4deg) scale(1.07); }
+      100% { transform: translate(-50%, -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1.05); }
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 12px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(8, 162, 80, 0.05);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      z-index: 1000;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease;
+    }
+
+    .navbar.hidden {
+      transform: translateY(-100%);
+    }
+
+    body.dark-mode .navbar {
+      background: rgba(40, 40, 40, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar-logo:hover {
+      transform: scale(1.05);
+    }
+
+    .navbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      background: linear-gradient(135deg, #068540, #4f9d68, #a4d9b3, #068540);
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 8px rgba(8, 162, 80, 0.3);
+      animation: shine 7s linear infinite;
+    }
+
+    body.dark-mode .navbar-title {
+      text-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes shine {
+      0% { background-position: 0% center; }
+      100% { background-position: 400% center; }
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .datetime-display {
+      font-size: 14px;
+      font-weight: 500;
+      color: #0d3b66;
+      background: rgba(168, 213, 186, 0.3);
+      padding: 10px 15px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .datetime-display:hover {
+      transform: scale(1.05);
+    }
+
+    body.dark-mode .datetime-display {
+      color: #e0e0e0;
+      background: rgba(50, 50, 50, 0.5);
+    }
+
+    .language-switcher select {
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0d3b66;
+      background: rgba(168, 213, 186, 0.3);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      appearance: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .language-switcher select:hover {
+      transform: scale(1.05);
+    }
+
+    body.dark-mode .language-switcher select {
+      background: rgba(50, 50, 50, 0.5);
+      color: #fff;
+    }
+
+    .celestial-toggle {
+      width: 60px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    body.dark-mode .celestial-toggle {
+      background: linear-gradient(90deg, #2b2b2b, #1a1a1a);
+    }
+
+    .toggle-slider {
+      width: 24px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 40%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.dark-mode .toggle-slider {
+      transform: translateX(30px);
+      background: #2b2b2b;
+    }
+
+    .sun, .moon {
+      position: absolute;
+      font-size: 14px;
+    }
+
+    .sun { opacity: 1; color: #f1c40f; }
+    .moon { opacity: 0; color: #ecf0f1; }
+    body.dark-mode .sun { opacity: 0; }
+    body.dark-mode .moon { opacity: 1; }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle 2s infinite;
+      animation-delay: var(--delay);
+    }
+
+    .star:nth-child(1) { top: 20%; left: 20%; }
+    .star:nth-child(2) { top: 50%; left: 25%; }
+    .star:nth-child(3) { top: 30%; left: 40%; }
+    body.dark-mode .star { opacity: 0.7; }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.5); }
+    }
+
+    .sidebar {
+      width: 250px;
+      background: linear-gradient(to bottom, rgba(193, 255, 193, 0.4), rgba(160, 222, 187, 0.4));
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.3);
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 80px;
+      z-index: 999;
+    }
+
+    body.dark-mode .sidebar {
+      background: rgba(40, 40, 40, 0.4);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar li {
+      padding: 15px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #0d3b66;
+      transition: background 0.3s ease;
+    }
+
+    .sidebar li:hover {
+      background: rgba(39, 36, 121, 0.2);
+    }
+
+    .sidebar li.active {
+      background: rgba(8, 162, 80, 0.3);
+      color: #f7fff8;
+    }
+
+    .profile-section {
+      text-align: center;
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+    }
+
+    body.dark-mode .profile-section {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-picture-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+    }
+
+    .profile-picture {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border: 2px solid rgba(8, 162, 80, 0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .profile-picture.uploaded {
+      box-shadow: 0 0 15px rgba(8, 162, 80, 0.8), 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-mode .profile-picture {
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark-mode .profile-picture.uploaded {
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-picture-placeholder::before {
+      content: "📷";
+      font-size: 60px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #0d3b66;
+    }
+
+    body.dark-mode .profile-picture-placeholder::before {
+      color: #e0e0e0;
+    }
+
+    .upload-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(8, 162, 80, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+    }
+
+    .profile-picture-container:hover .upload-overlay {
+      opacity: 1;
+    }
+
+    .upload-overlay span {
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .remove-photo-x {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 24px;
+      height: 24px;
+      background: #ff4d4d;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    .remove-photo-x:hover {
+      background: #b30000;
+      transform: scale(1.1);
+    }
+
+    .welcome-message {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #0d3b66;
+      opacity: 0;
+      animation: typeWelcome 2s forwards;
+    }
+
+    .content {
+      margin-left: 250px;
+      padding: 80px 20px 20px;
+      flex-grow: 1;
+    }
+
+    .glass-card {
+      background: rgba(152, 175, 161, 0.25);
+      backdrop-filter: blur(20px);
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35), 0 5px 15px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      margin-bottom: 20px;
+    }
+
+    body.dark-mode .glass-card {
+      background: rgba(40, 40, 40, 0.4);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0d3b66;
+      margin-bottom: 20px;
+    }
+
+    body.dark-mode .title {
+      color: #e0e0e0;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #333;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    body.dark-mode label {
+      color: #d0d0d0;
+    }
+
+    select, input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.3);
+      color: #333;
+      width: 100%;
+    }
+
+    body.dark-mode select, body.dark-mode input {
+      border: 1px solid #555;
+      background: rgba(51, 51, 51, 0.5);
+      color: #fff;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #08a250, #046c37);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #046c37, #08a250);
+      transform: translateY(-2px);
+    }
+
+    .tab-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #0d3b66;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .tab-button.active {
+      background: linear-gradient(135deg, #08a250, #046c37);
+      color: white;
+    }
+
+    .tab-button:hover {
+      background: rgba(8, 162, 80, 0.3);
+    }
+
+    body.dark-mode .tab-button {
+      background: rgba(50, 50, 50, 0.5);
+      color: #fff;
+    }
+
+    body.dark-mode .tab-button.active {
+      background: linear-gradient(135deg, #08a250, #046c37);
+    }
+
+    .chart-container {
+      max-width: 600px;
+      margin: 20px 0;
+    }
+
+    .chart-grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+      padding: 10px 0;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .chart-wrapper {
+      min-width: 350px;
+      height: 300px;
+    }
+
+    @media (max-width: 1200px) {
+      .chart-grid-container {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .chart-grid-container {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+      .chart-wrapper {
+        min-width: 300px;
+        height: 250px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .chart-grid-container {
+        grid-template-columns: 1fr;
+      }
+      .chart-wrapper {
+        min-width: 250px;
+        height: 250px;
+      }
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .data-table th, .data-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .data-table th {
+      background: rgba(8, 162, 80, 0.3);
+      color: #fff;
+    }
+
+    body.dark-mode .data-table th {
+      background: rgba(8, 162, 80, 0.5);
+    }
+
+    .message-container {
+      margin-top: 20px;
+    }
+
+    .message-list {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+
+    body.dark-mode .message-list {
+      background: rgba(50, 50, 50, 0.5);
+    }
+
+    .message-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      background: rgba(8, 162, 80, 0.1);
+    }
+
+    body.dark-mode .message-item {
+      background: rgba(8, 162, 80, 0.2);
+    }
+
+    .message-item.received {
+      background: rgba(39, 36, 121, 0.1);
+    }
+
+    body.dark-mode .message-item.received {
+      background: rgba(39, 36, 121, 0.2);
+    }
+
+    .message-item p {
+      margin: 0;
+      font-size: 14px;
+      color: #0d3b66;
+    }
+
+    body.dark-mode .message-item p {
+      color: #e0e0e0;
+    }
+
+    .message-item small {
+      font-size: 12px;
+      color: #555;
+    }
+
+    body.dark-mode .message-item small {
+      color: #bbb;
+    }
+
+    textarea {
+      resize: none;
+      height: 100px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.3);
+      color: #0d3b66;
+      width: 100%;
+    }
+
+    body.dark-mode textarea {
+      border: 1px solid #555;
+      background: rgba(51, 51, 51, 0.5);
+      color: #fff;
+    }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeInOverlay 0.3s ease;
+    }
+
+    body.dark-mode .loading-overlay {
+      background: rgba(0, 0, 0, 0.75);
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .content {
+        margin-left: 200px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding-top: 60px;
+      }
+
+      .content {
+        margin-left: 0;
+        padding-top: 120px;
+      }
+
+      .data-table th, .data-table td {
+        font-size: 12px;
+        padding: 10px;
+      }
+
+      .profile-picture {
+        width: 120px;
+        height: 120px;
+      }
+
+      .profile-picture-container {
+        width: 120px;
+        height: 120px;
+      }
+
+      .profile-picture {
+        width: 90px;
+        height: 90px;
+      }
+
+      .profile-picture-container {
+        width: 90px;
+        height: 90px;
+      }
+
+      .remove-photo-x {
+        top: -6px;
+        right: -6px;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-dynamic"></div>
+  <div class="navbar">
+    <div class="navbar-logo">
+      <lord-icon src="https://cdn.lordicon.com/dyfvgeqj.json" trigger="hover" state="hover-heartbeat" style="width:44px;height:44px"></lord-icon>
+      <span class="navbar-title">KOÜ Diyabet Takip Sistemi</span>
+    </div>
+    <div class="navbar-right">
+      <div class="datetime-display" id="datetimeDisplay"></div>
+      <div class="language-switcher">
+        <select id="languageSelect" onchange="changeLanguage()">
+          <option value="tr" selected>Türkçe</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="celestial-toggle" id="darkModeToggle" role="button" aria-label="Karanlık Modu Aç/Kapat" tabindex="0">
+        <div class="toggle-background">
+          <div class="star" style="--delay: 0.5s;"></div>
+          <div class="star" style="--delay: 1s;"></div>
+          <div class="star" style="--delay: 1.5s;"></div>
+        </div>
+        <div class="toggle-slider">
+          <span class="sun">☀️</span>
+          <span class="moon">🌙</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar">
+    <div class="profile-section">
+      <div class="profile-picture-container">
+        <img id="profilePicture" class="profile-picture profile-picture-placeholder" alt="Profile Picture">
+        <div class="upload-overlay">
+          <span>Fotoğraf Yükle</span>
+        </div>
+        <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+        <div class="remove-photo-x" id="removePhotoX" onclick="removeProfilePicture()">X</div>
+      </div>
+      <div class="welcome-message" id="welcomeMessage">Hoşgeldiniz</div>
+    </div>
+    <ul>
+      <li class="active" onclick="showSection('input')"><lord-icon src="https://cdn.lordicon.com/rqqkxvrx.json" trigger="hover" style="width:24px;height:24px"></lord-icon> Veri Girişi</li>
+      <li onclick="showSection('data')"><lord-icon src="https://cdn.lordicon.com/xcxzaybz.json" trigger="hover" style="width:24px;height:24px"></lord-icon> Veriler</li>
+      <li onclick="showSection('charts')"><lord-icon src="https://cdn.lordicon.com/qykfmgzs.json" trigger="hover" style="width:24px;height:24px"></lord-icon> Grafikler</li>
+      <li onclick="showSection('inbox')"><lord-icon src="https://cdn.lordicon.com/fdxqrdsw.json" trigger="hover" style="width:24px;height:24px"></lord-icon> Gelen Kutusu</li>
+      <li onclick="logout()"><lord-icon src="https://cdn.lordicon.com/vfevwnny.json" trigger="hover" style="width:24px;height:24px"></lord-icon> Çıkış Yap</li>
+    </ul>
+  </div>
+  <div class="content">
+    <div id="input" class="section">
+      <div class="glass-card">
+        <div class="title">Günlük Veri Girişi</div>
+        <div class="tab-buttons">
+          <button class="tab-button active" onclick="showForm('blood-sugar-form')">Kan Şekeri</button>
+          <button class="tab-button" onclick="showForm('diet-exercise-form')">Diyet ve Egzersiz</button>
+        </div>
+        <div id="blood-sugar-form" class="form-section">
+          <form id="bloodSugarForm" onsubmit="submitBloodSugar(event)">
+            <div class="form-group">
+              <label for="measurementDate">Tarih</label>
+              <input type="date" id="measurementDate" required>
+            </div>
+            <div class="form-group">
+              <label for="measurementTime">Saat</label>
+              <input type="time" id="measurementTime" required>
+            </div>
+            <div class="form-group">
+              <label for="bloodSugar">Kan Şekeri (mg/dL)</label>
+              <input type="number" id="bloodSugar" required min="0" placeholder="Kan şekeri değerini girin">
+            </div>
+            <div class="button-group">
+              <button type="submit">Kaydet</button>
+              <button type="button" onclick="finishMeasurement()">Ölçümü Bitir</button> <!-- New button added next to Kaydet -->
+            </div>
+          </form>
+        </div>
+        <div id="diet-exercise-form" class="form-section" style="display:none;">
+          <form id="dietExerciseForm" onsubmit="submitDietExercise(event)">
+            <div class="form-group">
+              <label for="dietExerciseDate">Tarih</label>
+              <input type="date" id="dietExerciseDate" required>
+            </div>
+            <div class="form-group">
+              <label for="dietExerciseTime">Saat</label>
+              <input type="time" id="dietExerciseTime" required>
+            </div>
+            <div class="form-group">
+              <label for="exercise">Egzersiz Durumu</label>
+              <select id="exercise" required>
+                <option value="yapildi">Yapıldı</option>
+                <option value="yapilmadi">Yapılmadı</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="diet">Diyet Durumu</label>
+              <select id="diet" required>
+                <option value="uygulandi">Uygulandı</option>
+                <option value="uygulanmadi">Uygulanmadı</option>
+              </select>
+            </div>
+            <button type="submit">Kaydet</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div id="data" class="section" style="display:none;">
+      <div class="glass-card">
+        <div class="controls-container" style="padding: 10px; text-align: center; background-color: #f0f0f0; margin-bottom:15px;">
+        <label for="dataDate">Tarih Seçin:</label>
+        <input type="date" id="dataDate" name="dataDate">
+        <button id="fetchDataButton" style="padding: 5px 10px; margin-left: 10px;">Verileri Getir</button>
+      </div>
+        <div class="title">Günlük Veriler</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Saat</th>
+              <th>Kan Şekeri</th>
+              <th>Zaman</th>
+              <th>İnsülin</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="charts" class="section" style="display:none;">
+      <div class="glass-card">
+        <div class="title">Kan Şekeri Grafiği</div>
+        <div class="chart-container">
+          <canvas id="bloodSugarChart"></canvas>
+        </div>
+        <div id="bloodSugarAverageInfo" style="text-align: center; margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 0.95em;">
+        </div>
+      </div>
+      <div class="glass-card">
+          <div class="title">Diyet ve Egzersiz Durumu</div>
+          <div class="chart-grid-container">
+            <div class="chart-wrapper">
+              <canvas id="dietComplianceChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="exerciseComplianceChart"></canvas>
+            </div>
+          </div>
+      </div>
+    </div>
+    <div id="inbox" class="section" style="display:none;">
+      <div class="glass-card">
+        <div class="title">Gelen Kutusu</div>
+        <div class="message-container">
+          <div class="message-list" id="messageList"></div>
+          <form id="messageForm" onsubmit="sendMessage(event)">
+            <div class="form-group">
+              <label for="receiverTc">Alıcı T.C. Kimlik No</label>
+              <input type="text" id="receiverTc" required pattern="\d{11}" placeholder="11 haneli T.C. Kimlik No">
+            </div>
+            <div class="form-group">
+              <label for="messageContent">Mesaj</label>
+              <textarea id="messageContent" placeholder="Mesajınızı yazın..." required></textarea>
+            </div>
+            <button type="submit">Gönder</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <lord-icon
+        src="https://cdn.lordicon.com/tyntlpjn.json"
+        trigger="loop"
+        delay="600"
+        state="hover-rotate-up-to-down"
+        colors="primary:#000000,secondary:#4bb3fd"
+        style="width:140px;height:140px">
+    </lord-icon>
+  </div>
+  <script>
+    // Sayfa yüklendiğinde localStorage'ı temizle
+window.onload = function() {
+  try {
+    localStorage.clear();
+    console.log('localStorage temizlendi:', localStorage);
+    // UI'yi güncelle
+    patientData = [];
+    messages = [];
+    renderData();
+    renderCharts();
+    loadMessages();
+    profilePicture.src = '';
+    profilePicture.classList.add('profile-picture-placeholder');
+    profilePicture.classList.remove('uploaded');
+    removePhotoX.style.display = 'none';
+    document.getElementById('welcomeMessage').textContent = 'Hoşgeldiniz';
+  } catch (error) {
+    console.error('localStorage silinirken hata:', error);
+    alert('Veriler silinirken bir hata oluştu: ' + error.message);
+  }
+};
+    const translations = {
+      tr: {
+        input: "Veri Girişi",
+        data: "Veriler",
+        charts: "Grafikler",
+        logout: "Çıkış Yap",
+        inbox: "Gelen Kutusu",
+        daily_input: "Günlük Veri Girişi",
+        measurement_date: "Tarih",
+        measurement_time: "Saat",
+        blood_sugar: "Kan Şekeri (mg/dL)",
+        exercise: "Egzersiz Durumu",
+        diet: "Diyet Durumu",
+        save: "Kaydet",
+        success: "Veri başarıyla kaydedildi.",
+        message_sent: "Mesaj gönderildi.",
+        tc_error: "T.C. Kimlik No 11 haneli olmalı."
+      },
+      en: {
+        input: "Data Entry",
+        data: "Data",
+        charts: "Charts",
+        logout: "Log Out",
+        inbox: "Inbox",
+        daily_input: "Daily Data Entry",
+        measurement_date: "Date",
+        measurement_time: "Time",
+        blood_sugar: "Blood Sugar (mg/dL)",
+        exercise: "Exercise Status",
+        diet: "Diet Status",
+        save: "Save",
+        success: "Data saved successfully.",
+        message_sent: "Message sent.",
+        tc_error: "TC ID must be 11 digits."
+      }
+    };
+
+    function changeLanguage() {
+      const lang = document.getElementById('languageSelect').value;
+      document.querySelectorAll('[data-lang-key]').forEach(element => {
+        const key = element.getAttribute('data-lang-key');
+        element.textContent = translations[lang][key];
+      });
+    }
+
+    function updateDateTime() {
+      const datetimeDisplay = document.getElementById('datetimeDisplay');
+      const lang = document.getElementById('languageSelect').value;
+      const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Europe/Istanbul'
+      };
+      const date = new Date().toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', options);
+      datetimeDisplay.textContent = date;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    });
+
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // Set default date and time
+    const today = new Date();
+    document.getElementById('measurementDate').value = today.toISOString().split('T')[0];
+    document.getElementById('measurementTime').value = today.toTimeString().slice(0, 5);
+    document.getElementById('dietExerciseDate').value = today.toISOString().split('T')[0];
+    document.getElementById('dietExerciseTime').value = today.toTimeString().slice(0, 5);
+
+
+    function showForm(formId) {
+      document.querySelectorAll('.form-section').forEach(section => {
+        section.style.display = section.id === formId ? 'block' : 'none';
+      });
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.toggle('active', button.onclick.toString().includes(formId));
+      });
+    }
+
+    async function submitBloodSugar(event) {
+  event.preventDefault();
+
+  const measurementDate = document.getElementById('measurementDate').value;
+  const measurementTime = document.getElementById('measurementTime').value;
+  const bloodSugar = document.getElementById('bloodSugar').value;
+  const lang = document.getElementById('languageSelect').value;
+
+  // Doğrulama
+  if (!measurementDate || !measurementTime || isNaN(bloodSugar)) {
+    alert(translations[lang].error || "Lütfen tüm alanları doldurun.");
+    return;
+  }
+
+  const data = {
+    url: 'http://127.0.0.1:8000/hasta/seker_ekle',
+    body: {
+      tarih: measurementDate,
+      saat: measurementTime,
+      kan_sekeri: bloodSugar
+    }
+  };
+
+  console.log("Kan şekeri verisi:", data);
+
+  try {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    loadingOverlay.classList.add("active");
+
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log("FastAPI yanıtı:", response);
+
+    if (response.message === 'Kan şekeri verisi başarıyla eklendi!') {
+      patientData.push(data.body);
+      alert(translations[lang].success);
+      if (response.insulin_suggestion) {
+          alert("💉 İnsülin Önerisi:\n" + response.insulin_suggestion);
+      }
+      if (parseInt(response.measure_lenght) <= 3){
+        alert("Yetersiz veri! Ortalama hesaplaması güvenilir değildir.")
+      }
+      renderData();
+      renderCharts();
+      document.getElementById('bloodSugarForm').reset();
+      document.getElementById('measurementDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('measurementTime').value = new Date().toTimeString().slice(0, 5);
+    }
+    else if(response.message === "Veri kaydedildi ancak ortalama hesabına dahil edilmeyecektir lütfen istenen aralıkta girin!"){
+      alert(response.message);
+    } 
+    else {
+      alert("Veri eklenemedi: " + (response.detail || "Sunucu hatası."));
+    }
+  } catch (error) {
+    console.error("Hata:", error.message);
+    alert("Veri eklenirken bir hata oluştu: " + error.message);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("active");
+  }
+}
+
+async function submitDietExercise(event) {
+  event.preventDefault();
+
+  const measurementDate = document.getElementById('dietExerciseDate').value;
+  const measurementTime = document.getElementById('dietExerciseTime').value;
+  const exercise = document.getElementById('exercise').value;
+  const diet = document.getElementById('diet').value;
+  const lang = document.getElementById('languageSelect').value;
+
+  // Doğrulama
+  if (!measurementDate || !measurementTime || !exercise || !diet) {
+    alert(translations[lang].error || "Lütfen tüm alanları doldurun.");
+    return;
+  }
+
+  const data = {
+    url: 'http://127.0.0.1:8000/hasta/diyet_egzersiz_guncelle',
+    body: {
+      tarih: measurementDate,
+      saat: measurementTime,
+      diyet : diet,
+      egzersiz : exercise
+    }
+  };
+
+  console.log("Kan şekeri verisi:", data);
+
+  try {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    loadingOverlay.classList.add("active");
+
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log("FastAPI yanıtı:", response);
+
+    if (response.message === 'Diyet ve egzersiz başarıyla güncellendi') {
+      patientData.push(data.body);
+      alert(translations[lang].success);
+      if (response.insulin_suggestion) {
+          alert("💉 İnsülin Önerisi:\n" + response.insulin_suggestion);
+      }
+      renderData();
+      renderCharts();
+      document.getElementById('dietExerciseForm').reset();
+      document.getElementById('measurementDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('measurementTime').value = new Date().toTimeString().slice(0, 5);
+    }
+    else if(response.message === "Veri kaydedildi ancak ortalama hesabına dahil edilmeyecektir lütfen istenen aralıkta girin!"){
+      alert(response.message);
+    } 
+    else {
+      alert("Veri eklenemedi: " + (response.detail || "Sunucu hatası."));
+    }
+  } catch (error) {
+    console.error("Hata:", error.message);
+    alert("Veri eklenirken bir hata oluştu: " + error.message);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("active");
+  }
+}
+
+async function finishMeasurement() {
+  const data = {
+    url: 'http://127.0.0.1:8000/hasta/olcum_bitir', // Tetiklemek istediğiniz endpoint
+    // body kısmı eklenmiyor, yani bodysiz istek
+  };
+
+  try {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    loadingOverlay.classList.add("active");
+
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log("FastAPI yanıtı:", response);
+
+    if (response.message) {
+      alert(response.message); // Backend'den dönen mesajı göster
+    } else {
+      alert("İşlem tamamlandı, ancak beklenmedik bir yanıt alındı.");
+    }
+  } catch (error) {
+    console.error("Hata:", error.message);
+    alert("Bir hata oluştu: " + error.message);
+  } finally {
+    document.getElementById("loadingOverlay").classList.remove("active");
+  }
+}
+
+
+async function sendToBackend(data) {
+  try {
+    console.log('Sending to backend:', JSON.stringify(data, null, 2));
+    const result = await window.electron.sendToBackend(data);
+    console.log('Backend response:', result);
+    alert('Hasta başarıyla eklendi!');
+    document.getElementById('addPatientForm').reset(); // Reset form after success
+  } catch (error) {
+    console.error('Backend error:', error.message);
+    alert('Bir hata oluştu: ' + error.message);
+  }
+}
+
+    
+    function showSection(sectionId) {
+  document.querySelectorAll('.section').forEach(section => {
+    section.style.display = section.id === sectionId ? 'block' : 'none';
+  });
+  document.querySelectorAll('.sidebar li').forEach(li => {
+    li.classList.toggle('active', li.onclick.toString().includes(sectionId));
+  });
+
+  if (sectionId === 'data') {
+    fetchPatientData(); // Bu fonksiyon zaten içinde renderCharts() çağırıyor
+  } else if (sectionId === 'charts') {
+    renderCharts(); // "Grafikler" sekmesi açıldığında da grafikler yeniden çizilsin
+  } else if (sectionId === 'inbox') {
+    loadMessages();
+  }
+}
+
+let patientData = [];
+    
+async function fetchPatientData() {
+    const lang = document.getElementById('languageSelect').value;
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay.classList.add('active');
+
+    try {
+        const dataToRequest = {
+            url: 'http://127.0.0.1:8000/hasta/gunluk_veri',
+            method: 'GET',
+            body: {}
+        };
+
+        const response = await window.electronAPI.sendToBackend(dataToRequest);
+        console.log("API'den gelen hasta verileri:", response);
+
+        if (response && response.kan_şekeri && response.diyet_egzersiz) {
+            let periodDietStatus = 'bilgi_yok';
+            let periodExerciseStatus = 'bilgi_yok';
+            let periodDietName = 'Belirtilmemiş';
+            let periodExerciseName = 'Belirtilmemiş';
+
+            if (response.diyet_egzersiz.length > 0) {
+                const complianceInfo = response.diyet_egzersiz[0];
+                if (complianceInfo.diyet_adı) periodDietName = complianceInfo.diyet_adı;
+                const dietStatusFromAPI = String(complianceInfo.diyet_durum).toLowerCase();
+                if (dietStatusFromAPI === 'uygulandi') periodDietStatus = 'uygulandi';
+                else if (dietStatusFromAPI === 'uygulanmadi') periodDietStatus = 'uygulanmadi';
+
+                if (complianceInfo.egzersiz_adı) periodExerciseName = complianceInfo.egzersiz_adı;
+                const exerciseStatusFromAPI = String(complianceInfo.egzersiz_durum).toLowerCase();
+                if (exerciseStatusFromAPI === 'yapildi') periodExerciseStatus = 'yapildi';
+                else if (exerciseStatusFromAPI === 'yapilmadi') periodExerciseStatus = 'yapilmadi';
+            }
+
+            const combinedData = response.kan_şekeri.map(bs_entry => {
+                return {
+                    date: bs_entry.tarih,
+                    time: bs_entry.saat,
+                    bloodSugar: bs_entry['kan_şekeri'] ? parseFloat(bs_entry['kan_şekeri']) : null,
+                    zaman: bs_entry.zaman || '-',
+                    insulin: bs_entry['insülin'] || '-',
+                    ortalama: bs_entry.ortalama !== undefined ? bs_entry.ortalama : null, // Ortalama eklendi/teyit edildi
+                    diet: periodDietStatus,
+                    dietName: periodDietName,
+                    exercise: periodExerciseStatus,
+                    exerciseName: periodExerciseName
+                };
+            });
+
+            patientData = combinedData;
+            console.log("Birleştirilmiş Veri (patientData içeriği):", patientData);
+
+            renderData();
+            renderCharts();
+        } else {
+            console.error("Beklenmedik yanıt formatı veya eksik veri:", response);
+            alert(translations[lang].error || 'Veri formatı hatalı veya veriler yüklenemedi.');
+            patientData = [];
+            renderData();
+            renderCharts();
+        }
+    } catch (error) {
+        console.error('Veri çekme hatası:', error.message, error.stack);
+        alert(translations[lang].error || 'Veriler çekilirken hata oluştu: ' + error.message);
+        patientData = [];
+        renderData();
+        renderCharts();
+    } finally {
+        loadingOverlay.classList.remove('active');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+const fetchDataButton = document.getElementById('fetchDataButton');
+  if (fetchDataButton) {
+    fetchDataButton.addEventListener('click', fetchPatientDataByDate);
+  }
+});
+
+// GÜNCELLENEN FetchPatientData Fonksiyonu (Tarih Filtreli Veri İçin)
+// İsimlendirmeyi fetchPatientDataByDate olarak kullanıyoruz
+async function fetchPatientDataByDate() {
+  const dateInput = document.getElementById('dataDate');
+  const selectedDate = dateInput.value;
+  const lang = document.getElementById('languageSelect').value;
+
+  if (!selectedDate) {
+    alert('Lütfen veri getirmek için bir tarih seçin.');
+    return;
+  }
+
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  loadingOverlay.classList.add('active');
+
+  const requestPayload = {
+    url: 'http://127.0.0.1:8000/hasta/veri_filtrele',
+    method: 'POST',
+    body: { tarih: selectedDate }
+  };
+  console.log("Tarih filtreli istek gönderiliyor:", requestPayload);
+
+  try {
+    const response = await window.electronAPI.sendToBackend(requestPayload);
+    console.log("Tarih filtreli API yanıtı:", response);
+
+    let processedData = [];
+
+    if (response && Array.isArray(response.kan_sekeri) && response.diyet_egzersiz) {
+        let periodDietStatus = 'bilgi_yok';
+        let periodExerciseStatus = 'bilgi_yok';
+        let periodDietName = 'Belirtilmemiş';
+        let periodExerciseName = 'Belirtilmemiş';
+
+        if (response.diyet_egzersiz && response.diyet_egzersiz.length > 0) {
+            const complianceInfo = response.diyet_egzersiz[0];
+            if (complianceInfo.diyet_adı) periodDietName = complianceInfo.diyet_adı;
+            const dietStatusFromAPI = String(complianceInfo.diyet_durum || '').toLowerCase();
+            if (dietStatusFromAPI === 'uygulandi') periodDietStatus = 'uygulandi';
+            else if (dietStatusFromAPI === 'uygulanmadi') periodDietStatus = 'uygulanmadi';
+
+            if (complianceInfo.egzersiz_adı) periodExerciseName = complianceInfo.egzersiz_adı;
+            const exerciseStatusFromAPI = String(complianceInfo.egzersiz_durum || '').toLowerCase();
+            if (exerciseStatusFromAPI === 'yapildi') periodExerciseStatus = 'yapildi';
+            else if (exerciseStatusFromAPI === 'yapilmadi') periodExerciseStatus = 'yapilmadi';
+        }
+
+        processedData = response.kan_sekeri.map(bs_entry => ({
+            date: bs_entry.tarih,
+            time: bs_entry.saat,
+            bloodSugar: bs_entry['kan_şekeri'] ? parseFloat(bs_entry['kan_şekeri']) : null,
+            zaman: bs_entry.zaman || '-',
+            insulin: bs_entry['insülin'] || '-',
+            ortalama: bs_entry.ortalama !== undefined ? bs_entry.ortalama : null, // Ortalama eklendi/teyit edildi
+            diet: periodDietStatus,
+            dietName: periodDietName,
+            exercise: periodExerciseStatus,
+            exerciseName: periodExerciseName
+        }));
+        console.log("Filtrelenmiş Veri (Yapılandırılmış Yanıt İşlendi):", processedData);
+
+    } else if (response && Array.isArray(response)) {
+        processedData = response.map(entry => ({
+            date: entry.tarih,
+            time: entry.saat,
+            bloodSugar: entry['kan_şekeri'] ? parseFloat(entry['kan_şekeri']) : null,
+            zaman: entry.zaman || '-',
+            insulin: entry['insülin'] || '-',
+            ortalama: entry.ortalama !== undefined ? entry.ortalama : null, // Ortalama eklendi/teyit edildi
+            diet: 'bilgi_yok',
+            dietName: 'Belirtilmemiş',
+            exercise: 'bilgi_yok',
+            exerciseName: 'Belirtilmemiş'
+        }));
+        console.log("Filtrelenmiş Veri (Doğrudan Dizi Yanıtı İşlendi):", processedData);
+    } else {
+      console.error("Beklenmedik yanıt formatı veya eksik veri (fetchPatientDataByDate):", response);
+    }
+
+    patientData = processedData;
+
+    renderData();
+    renderCharts();
+
+  } catch (error) {
+    console.error('Tarih filtreli veri getirme hatası:', error.message, error.stack);
+    patientData = [];
+    renderData();
+    renderCharts();
+  } finally {
+    loadingOverlay.classList.remove('active');
+  }
+}
+    function renderData() {
+    const tbody = document.getElementById('dataTableBody');
+    tbody.innerHTML = '';
+    // En son verinin en üstte görünmesi için veriyi ters çevirebiliriz. (isteğe bağlı)
+    [...patientData].reverse().forEach(data => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${data.date}</td>
+          <td>${data.time}</td>
+          <td>${data.bloodSugar ? data.bloodSugar + ' mg/dL' : '-'}</td>
+          <td>${data.zaman}</td>
+          <td>${data.insulin}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+    let chartInstances = {}; // Tüm grafikleri burada saklayacağız
+        
+    function renderCharts() {
+        Object.values(chartInstances).forEach(chart => chart.destroy());
+        chartInstances = {};
+
+        if (!patientData || patientData.length === 0) {
+            console.log("Grafik çizmek için veri yok.");
+            const averageDisplayElement = document.getElementById('bloodSugarAverageInfo');
+            if(averageDisplayElement) {
+                averageDisplayElement.innerHTML = '<p style="font-style: italic;">Kan şekeri ortalaması için veri bulunmamaktadır.</p>';
+                averageDisplayElement.style.backgroundColor = document.body.classList.contains('dark-mode') ? 'rgba(50, 50, 50, 0.5)' : 'rgba(240, 240, 240, 0.7)';
+                averageDisplayElement.style.border = document.body.classList.contains('dark-mode') ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)';
+            }
+            // Diğer grafik canvaslarını da temizle
+            const dietCtx = document.getElementById('dietComplianceChart').getContext('2d');
+            const exerciseCtx = document.getElementById('exerciseComplianceChart').getContext('2d');
+            dietCtx.clearRect(0, 0, dietCtx.canvas.width, dietCtx.canvas.height);
+            exerciseCtx.clearRect(0, 0, exerciseCtx.canvas.width, exerciseCtx.canvas.height);
+            return;
+        }
+
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        Chart.defaults.color = isDarkMode ? '#e0e0e0' : '#666';
+        Chart.defaults.borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+        // 1. Kan Şekeri Çizgi Grafiği
+        const bloodSugarCtx = document.getElementById('bloodSugarChart').getContext('2d');
+        const validBloodSugarEntries = patientData.filter(d =>
+            d && typeof d.date === 'string' && d.date.length >= 5 &&
+            typeof d.time === 'string' &&
+            (typeof d.bloodSugar === 'number' || d.bloodSugar === null)
+        );
+        const labels = validBloodSugarEntries.map(d => `${d.date.substring(5)} ${d.time}`);
+        const bloodSugarDataPoints = validBloodSugarEntries.map(d => d.bloodSugar);
+
+        chartInstances.bloodSugar = new Chart(bloodSugarCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Kan Şekeri (mg/dL)',
+                    data: bloodSugarDataPoints,
+                    borderColor: '#08a250',
+                    backgroundColor: 'rgba(8, 162, 80, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: false } },
+                plugins: { title: { display: false } }
+            }
+        });
+
+        // KAN ŞEKERİ ORTALAMASINI GÖSTERME KISMI
+        const averageDisplayElement = document.getElementById('bloodSugarAverageInfo');
+        if (averageDisplayElement) {
+            averageDisplayElement.innerHTML = ''; // Önceki içeriği temizle
+            averageDisplayElement.style.backgroundColor = isDarkMode ? 'rgba(50, 50, 50, 0.5)' : 'rgba(240, 240, 240, 0.7)';
+            averageDisplayElement.style.border = isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)';
+            
+            // patientData'dan gelen ortalamayı kullan (backend'den gelen)
+            if (patientData[0].ortalama !== undefined && patientData[0].ortalama !== null) {
+                const averageFromDb = parseFloat(patientData[0].ortalama).toFixed(1);
+                averageDisplayElement.innerHTML = `<p style="font-weight: 600;">Günlük Kan Şekeri Ortalaması: ${averageFromDb} mg/dL</p>`;
+            } 
+            // Fallback: Eğer DB'den ortalama gelmezse, grafikteki verilerden hesapla
+            else if (validBloodSugarEntries.length > 0) {
+                const numericBloodSugarValues = bloodSugarDataPoints.filter(val => typeof val === 'number' && !isNaN(val));
+                if (numericBloodSugarValues.length > 0) {
+                    const sum = numericBloodSugarValues.reduce((acc, val) => acc + val, 0);
+                    const calculatedAverage = (sum / numericBloodSugarValues.length).toFixed(1);
+                    averageDisplayElement.innerHTML = `<p style="font-weight: 600;">Hesaplanan Ortalama: ${calculatedAverage} mg/dL</p>`;
+                } else {
+                    averageDisplayElement.innerHTML = '<p style="font-style: italic;">Ortalama hesaplamak için geçerli kan şekeri verisi yok.</p>';
+                }
+            } else {
+                averageDisplayElement.innerHTML = '<p style="font-style: italic;">Kan şekeri ortalaması bilgisi mevcut değil.</p>';
+            }
+        }
+
+        // Diyet ve Egzersiz Adlarını Al
+        const currentDietName = patientData[0].dietName || 'Diyet';
+        const currentExerciseName = patientData[0].exerciseName || 'Egzersiz';
+
+        // 2. Diyet Uyumu Halka Grafiği
+        const dietCtx = document.getElementById('dietComplianceChart').getContext('2d');
+        const dietApplied = patientData.filter(d => d.diet === 'uygulandi').length;
+        const dietNotApplied = patientData.filter(d => d.diet === 'uygulanmadi').length;
+        const dietDataAvailable = dietApplied > 0 || dietNotApplied > 0;
+
+        chartInstances.diet = new Chart(dietCtx, {
+            type: 'doughnut',
+            data: {
+                labels: dietDataAvailable ? ['Uyuldu', 'Uyulmadı'] : ['Veri Yok'],
+                datasets: [{
+                    label: `${currentDietName} Uyumu`,
+                    data: dietDataAvailable ? [dietApplied, dietNotApplied] : [1],
+                    backgroundColor: dietDataAvailable ? ['#08a250', '#ff6384'] : ['#cccccc'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: dietDataAvailable ? `${currentDietName} Uyumu` : `${currentDietName} (Veri Yok)`, font: { size: 16 } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed !== null && dietDataAvailable) label += context.label + ' (' + context.raw + ' gün)';
+                                else if (!dietDataAvailable) return "Diyet verisi bulunmuyor";
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Egzersiz Durumu Halka Grafiği
+        const exerciseCtx = document.getElementById('exerciseComplianceChart').getContext('2d');
+        const exerciseDone = patientData.filter(d => d.exercise === 'yapildi').length;
+        const exerciseNotDone = patientData.filter(d => d.exercise === 'yapilmadi').length;
+        const exerciseDataAvailable = exerciseDone > 0 || exerciseNotDone > 0;
+
+        chartInstances.exercise = new Chart(exerciseCtx, {
+            type: 'doughnut',
+            data: {
+                labels: exerciseDataAvailable ? ['Yapıldı', 'Yapılmadı'] : ['Veri Yok'],
+                datasets: [{
+                    label: `${currentExerciseName} Durumu`,
+                    data: exerciseDataAvailable ? [exerciseDone, exerciseNotDone] : [1],
+                    backgroundColor: exerciseDataAvailable ? ['#36a2eb', '#ffcd56'] : ['#cccccc'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: exerciseDataAvailable ? `${currentExerciseName} Durumu` : `${currentExerciseName} (Veri Yok)`, font: { size: 16 } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed !== null && exerciseDataAvailable) label += context.label + ' (' + context.raw + ' gün)';
+                                else if (!exerciseDataAvailable) return "Egzersiz verisi bulunmuyor";
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+
+    function loadMessages() {
+      const messageList = document.getElementById('messageList');
+      messageList.innerHTML = '';
+      
+      const filteredMessages = messages.filter(message =>
+        message.receiverTc === loggedInTc
+      );
+
+      if (filteredMessages.length === 0) {
+        messageList.innerHTML = '<p>Mesaj bulunmamaktadır.</p>';
+        return;
+      }
+
+      filteredMessages.forEach(message => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message-item', 'received');
+        messageDiv.innerHTML = `
+          <p><strong>${message.senderTc}:</strong> ${message.content}</p>
+          <small>${message.timestamp}</small>
+        `;
+        messageList.appendChild(messageDiv);
+      });
+
+      messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    function sendMessage(event) {
+      event.preventDefault();
+      const receiverTc = document.getElementById('receiverTc').value.trim();
+      const messageContent = document.getElementById('messageContent').value.trim();
+      const lang = document.getElementById('languageSelect').value;
+
+      if (!loggedInTc) {
+        alert('Lütfen T.C. kimlik numaranızla giriş yapın.');
+        return;
+      }
+
+      if (!/^\d{11}$/.test(receiverTc)) {
+        alert(translations[lang].tc_error);
+        return;
+      }
+
+      if (!messageContent) {
+        alert('Mesaj içeriği boş olamaz.');
+        return;
+      }
+
+      const timestamp = new Date().toLocaleString('tr-TR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Istanbul'
+      });
+
+      const newMessage = {
+        senderTc: loggedInTc,
+        receiverTc: receiverTc,
+        content: messageContent,
+        timestamp: timestamp
+      };
+
+      messages.push(newMessage);
+      document.getElementById('receiverTc').value = '';
+      document.getElementById('messageContent').value = '';
+      loadMessages();
+      alert(translations[lang].message_sent);
+    }
+
+    async function logout() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.classList.add('active');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      localStorage.removeItem('loggedInTc');
+      window.location.href = 'index.html';
+    }
+
+        const profilePictureElement = document.getElementById('profilePicture');
+    const profilePictureInput = document.getElementById('profilePictureInput');
+    const uploadOverlay = document.querySelector('.upload-overlay');
+    const removePhotoXButton = document.getElementById('removePhotoX');
+    
+
+    uploadOverlay.addEventListener('click', () => {
+      profilePictureInput.click(); // Dosya seçme iletişim kutusunu aç
+    });
+
+        profilePictureInput.addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        // No need for FileReader if sending the file object directly
+        // const reader = new FileReader();
+        // reader.onload = async (e) => { ... }
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.classList.add('active');
+
+        const formData = new FormData();
+        formData.append('image_file', file); // 'image_file' is the name your backend expects for the file
+
+        const requestPayload = {
+          url: 'http://127.0.0.1:8000/hasta/foto_guncelle',
+          method: 'POST',
+          body: { path: file.name }, 
+          headers: {
+            'Content-Type': 'application/json',      
+          },
+        };
+
+
+        try {
+          console.log("Uploading profile picture to API:", requestPayload.url);
+          const response = await window.electronAPI.sendToBackend(requestPayload);
+          console.log("Profile picture upload API response:", response);
+
+          if (response && (response.success || (response.message && response.message.toLowerCase().includes('başarıyla')))) {
+            alert('Profil fotoğrafı başarıyla güncellendi.');
+            profilePictureElement.classList.remove('profile-picture-placeholder');
+            profilePictureElement.classList.add('uploaded');
+            removePhotoXButton.style.display = 'flex';
+            await fetchProfilePicturePath(); // Refresh the picture
+          } else {
+            alert('Profil fotoğrafı güncellenemedi: ' + (response.detail || response.message || 'Bilinmeyen sunucu hatası.'));
+          }
+        } catch (error) {
+          console.error('Profil fotoğrafı yükleme hatası:', error);
+          alert('Profil fotoğrafı yüklenirken bir istemci tarafı hata oluştu: ' + error.message);
+        } finally {
+          loadingOverlay.classList.remove('active');
+        }
+      }
+    });
+
+
+    async function setProfilePictureFromPath(filePath) {
+  document.getElementById("profilePicture").src = filePath;
+}
+
+   async function fetchProfilePicturePath() {
+  const loadingOverlay = document.getElementById('loadingOverlay');
+
+  const requestPayload = {
+    url: 'http://127.0.0.1:8000/hasta/foto_al',
+    method: 'GET'
+  };
+
+  try {
+    console.log("Profil fotoğrafı yolu API'den çekiliyor:", requestPayload.url);
+    const response = await window.electronAPI.sendToBackend(requestPayload);
+    console.log("Profil fotoğrafı yolu API yanıtı:", response);
+
+    if (response) {
+      const fileName = response.path;
+      const fullImageUrl = `http://127.0.0.1:8000/static/image/${fileName}`;
+      setProfilePictureFromPath(fullImageUrl)
+    } else {
+      // Fotoğraf yoksa veya hata varsa placeholder göster
+      profilePictureElement.src = '';
+      profilePictureElement.classList.add('profile-picture-placeholder');
+      profilePictureElement.classList.remove('uploaded');
+      removePhotoXButton.style.display = 'none';
+      console.warn('Profil fotoğrafı yolu alınamadı veya boş döndü.');
+    }
+  } catch (error) {
+    console.error('Profil fotoğrafı yolu çekme hatası:', error);
+    profilePictureElement.src = '';
+    profilePictureElement.classList.add('profile-picture-placeholder');
+    profilePictureElement.classList.remove('uploaded');
+    removePhotoXButton.style.display = 'none';
+  } finally {
+    // loadingOverlay.classList.remove('active');
+  }
+}
+
+
+    // --- PROFİL FOTOĞRAFINI KALDIRMA ---
+    async function removeProfilePicture() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.classList.add('active');
+
+      // Backend'e silme isteği gönder
+      const requestPayload = {
+        url: 'http://127.0.0.1:8000/hasta/foto_guncelle', 
+        method: 'POST' ,
+        body: { path: "" }, 
+          headers: {
+            'Content-Type': 'application/json',      
+          },
+      };
+
+      try {
+        console.log("Profil fotoğrafı silme isteği gönderiliyor:", requestPayload.url);
+        const response = await window.electronAPI.sendToBackend(requestPayload);
+        console.log("Profil fotoğrafı silme API yanıtı:", response);
+
+        if (response) {
+          alert('Profil fotoğrafı başarıyla kaldırıldı.');
+           if (profilePictureInput) {
+                  profilePictureInput.value = null;
+          }
+          profilePictureElement.src = '';
+          profilePictureElement.classList.add('profile-picture-placeholder');
+          profilePictureElement.classList.remove('uploaded');
+          removePhotoXButton.style.display = 'none';
+        } else {
+          alert('Profil fotoğrafı kaldırılamadı: ' + (response.detail || response.message || 'Bilinmeyen sunucu hatası.'));
+        }
+      } catch (error) {
+        console.error('Profil fotoğrafı silme hatası:', error);
+        alert('Profil fotoğrafı silinirken bir istemci tarafı hata oluştu: ' + error.message);
+      } finally {
+        await fetchProfilePicturePath();
+        loadingOverlay.classList.remove('active');
+      }
+    }
+    
+
+    window.onload = function() {
+      try {
+        localStorage.clear(); // Bu satırın varlığı, localStorage'a dayalı kalıcılığı engeller.
+        console.log('localStorage temizlendi.');
+
+        // UI'yi varsayılan duruma getir
+        patientData = [];
+        messages = [];
+        // loggedInTc = null; // Eğer kullanıcı girişi de localStorage'da tutuluyorsa, o da temizlenir.
+
+        // Diğer UI resetleme işlemleri...
+        document.getElementById('measurementDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('measurementTime').value = new Date().toTimeString().slice(0,5);
+        document.getElementById('dietExerciseDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('dietExerciseTime').value = new Date().toTimeString().slice(0,5);
+
+        if(typeof renderData === 'function') renderData();
+        if(typeof renderCharts === 'function') renderCharts();
+        if(typeof loadMessages === 'function') loadMessages(); // loggedInTc'ye bağlıysa sorun olabilir
+
+        profilePictureElement.src = '';
+        profilePictureElement.classList.add('profile-picture-placeholder');
+        profilePictureElement.classList.remove('uploaded');
+        removePhotoXButton.style.display = 'none';
+        document.getElementById('welcomeMessage').textContent = 'Hoşgeldiniz'; // veya kullanıcı adı
+
+        // localStorage temizlendikten ve UI resetlendikten sonra API'den profil fotoğrafını çek
+        fetchProfilePicturePath(); // << PROFİL FOTOĞRAFINI ÇEKME ÇAĞRISI
+
+        updateDateTime(); // Eğer bu fonksiyon varsa çağır.
+
+      } catch (error) {
+        console.error('localStorage silinirken veya başlangıç işlemleri sırasında hata:', error);
+        // alert('Veriler silinirken veya sayfa başlatılırken bir hata oluştu: ' + error.message);
+      }
+    };
+
+    // Initial render
+    renderData();
+    renderCharts();
+  </script>
+</body>
+</html>

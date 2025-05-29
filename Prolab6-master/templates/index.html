@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Diyabet Takip Sistemi - Güvenli ve modern giriş arayüzü">
+  <title>Diyabet Takip Sistemi - Giriş</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      background: none;
+    }
+
+    .background-dynamic {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      background: url('../static/image/background.png') no-repeat center center;
+      background-size: cover;
+      opacity: 0.7;
+      filter: blur(5px);
+      transform: translate(-50%, -50%);
+      z-index: -1;
+      animation: circularMotion 12s ease-in-out infinite;
+    }
+
+    body.dark-mode .background-dynamic {
+      filter: blur(5px) brightness(0.5);
+    }
+
+    @keyframes circularMotion {
+      0% { transform: translate(-50%, -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1.05); }
+      20% { transform: translate(-50%, -50%) translateX(25px) translateY(10px) rotate(0.8deg) scale(1.08); }
+      40% { transform: translate(-50%, -50%) translateX(0px) translateY(25px) rotate(1.2deg) scale(1.1); }
+      60% { transform: translate(-50%, -50%) translateX(-25px) translateY(10px) rotate(0.8deg) scale(1.08); }
+      80% { transform: translate(-50%, -50%) translateX(0px) translateY(-15px) rotate(0.4deg) scale(1.07); }
+      100% { transform: translate(-50%, -50%) translateX(0px) translateY(0px) rotate(0deg) scale(1.05); }
+    }
+
+    canvas#particle-bg {
+      display: none;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 12px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(8, 162, 80, 0.05);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      z-index: 1000;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease;
+    }
+
+    .navbar.hidden {
+      transform: translateY(-100%);
+    }
+
+    body.dark-mode .navbar {
+      background: rgba(40, 40, 40, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar-logo:hover {
+      transform: scale(1.05);
+    }
+
+    .navbar-logo lord-icon {
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    .navbar-logo lord-icon:hover {
+      transform: scale(1.15);
+      filter: brightness(1.2);
+    }
+
+    .navbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      background: linear-gradient(135deg, #068540, #4f9d68, #a4d9b3, #068540);
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 8px rgba(8, 162, 80, 0.3);
+      animation: shine 7s linear infinite;
+      transition: transform 0.8s ease, text-shadow 0.5s ease;
+    }
+
+    body.dark-mode .navbar-title {
+      color: inherit;
+      text-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes shine {
+      0% { background-position: 0% center; }
+      100% { background-position: 400% center; }
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .datetime-display {
+      font-size: 14px;
+      font-weight: 500;
+      color: #0d3b66;
+      background: rgba(168, 213, 186, 0.3);
+      padding: 10px 15px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .datetime-display:hover {
+      transform: scale(1.05);
+    }
+
+    body.dark-mode .datetime-display {
+      color: #e0e0e0;
+      background: rgba(50, 50, 50, 0.5);
+    }
+
+    .language-switcher {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-top: -2px;
+    }
+
+    .language-switcher select {
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0d3b66;
+      background: rgba(168, 213, 186, 0.3);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      appearance: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .language-switcher select:hover {
+      transform: scale(1.05);
+    }
+
+    .language-switcher select:focus {
+      outline: none;
+      box-shadow: 0 0 8px rgba(79, 172, 254, 0.4);
+    }
+
+    body.dark-mode .language-switcher select {
+      background: rgba(50, 50, 50, 0.5);
+      color: #fff;
+    }
+
+    .language-switcher::after {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      color: #666;
+      pointer-events: none;
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .language-switcher:hover::after {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    body.dark-mode .language-switcher::after {
+      color: #ccc;
+    }
+
+    .celestial-toggle {
+      width: 60px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.3s ease, background 0.5s ease;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      margin-top: 4px;
+    }
+
+    body.dark-mode .celestial-toggle {
+      background: linear-gradient(90deg, #2b2b2b, #1a1a1a);
+    }
+
+    .celestial-toggle:hover {
+      transform: scale(1.05);
+    }
+
+    .toggle-background {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle 2s infinite;
+      animation-delay: var(--delay);
+    }
+
+    .star:nth-child(1) { top: 20%; left: 20%; }
+    .star:nth-child(2) { top: 50%; left: 25%; }
+    .star:nth-child(3) { top: 30%; left: 40%; }
+
+    body.dark-mode .star { opacity: 0.7; }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    .toggle-slider {
+      width: 24px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 40%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-mode .toggle-slider {
+      transform: translateX(30px);
+      background: #2b2b2b;
+    }
+
+    .sun, .moon {
+      position: absolute;
+      font-size: 14px;
+      transition: opacity 0.3s ease;
+    }
+
+    .sun { opacity: 1; color: #f1c40f; }
+    .moon { opacity: 0; color: #ecf0f1; }
+    body.dark-mode .sun { opacity: 0; }
+    body.dark-mode .moon { opacity: 1; }
+
+    .glass-card {
+      background: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(255, 255, 255, 0.25) 10%,
+        rgba(255, 255, 255, 0.25) 90%,
+        transparent 100%
+      );
+      backdrop-filter: blur(10px);
+      border-radius: 28px;
+      padding: 50px 40px;
+      width: 110%;
+      max-width: 550px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+      position: static;
+      z-index: 1;
+      margin-top: 80px;
+      transition: all 0.5s ease;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transform: scale(0.95);
+      overflow: hidden;
+    }
+
+    body.dark-mode .glass-card {
+      background: rgba(40, 40, 40, 0.4);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 800;
+      color: #0d3b66;
+      margin-bottom: 1px;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .title {
+      color: #e0e0e0;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 16px;
+      color: #444;
+      margin-bottom: 10px;
+      opacity: 0.85;
+      line-height: 1.5;
+    }
+
+    body.dark-mode .subtitle {
+      color: #b0b0b0;
+    }
+
+    .icon-box {
+      text-align: center;
+      margin-bottom: 15px;
+      transform: scale(1);
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    .icon-box:hover {
+      transform: scale(1.12);
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 5px;
+      color: #333;
+      position: relative;
+    }
+
+    body.dark-mode label {
+      color: #d0d0d0;
+    }
+
+    label .tooltip {
+      visibility: hidden;
+      width: 160px;
+      background: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 8px;
+      position: absolute;
+      z-index: 10;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-size: 12px;
+    }
+
+    label:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    body.dark-mode label .tooltip {
+      background: #555;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 45px 14px 14px;
+      border: 1px solid #ccc;
+      border-radius: 14px;
+      margin-top: 8px;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: #4facfe;
+      box-shadow: 0 0 10px rgba(79, 172, 254, 0.4);
+      transform: scale(1.02);
+      outline: none;
+    }
+
+    body.dark-mode input, body.dark-mode select {
+      border: 1px solid #555;
+      background: rgba(51, 51, 51, 0.5);
+      color: #fff;
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 15px;
+      top: 58%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #666;
+      font-size: 18px;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .input-icon:hover {
+      transform: translateY(-50%) scale(1.2);
+    }
+
+    body.dark-mode .input-icon {
+      color: #ccc;
+    }
+
+    button {
+      margin-top: 35px;
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #08a250, #046c37, rgba(8, 162, 80, 0));
+      border: none;
+      border-radius: 14px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body.dark-mode button {
+      background: linear-gradient(135deg, #08a250, #046c37, rgba(8, 162, 80, 0));
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(120deg, #08a250, rgba(8, 162, 80, 0), #046c37);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-mode button:hover {
+      background: linear-gradient(135deg, #08a250, rgba(8, 162, 80, 0), #046c37);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    .loader {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4facfe;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      animation: spin 1s linear infinite;
+    }
+
+    body.dark-mode .loader {
+      border: 4px solid #555;
+      border-top: 4px solid #4facfe;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .footer-text {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-top: 30px;
+      opacity: 0.9;
+    }
+
+    body.dark-mode .footer-text {
+      color: #aaa;
+    }
+
+    .forgot-password {
+      text-align: right;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .forgot-password a {
+      color: #08a250;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .forgot-password a:hover {
+      color: #046c37;
+      text-decoration: underline;
+    }
+
+    body.dark-mode .forgot-password a {
+      color: #08a250;
+    }
+
+    body.dark-mode .forgot-password a:hover {
+      color: #6dd9a0;
+      text-decoration: underline;
+    }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeInOverlay 0.3s ease;
+    }
+
+    body.dark-mode .loading-overlay {
+      background: rgba(0, 0, 0, 0.75);
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .quick-access {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .quick-access button {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .quick-access button:hover {
+      transform: scale(1.1);
+    }
+
+    body.dark-mode .quick-access button {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    button:focus, input:focus, select:focus {
+      outline-offset: 2px;
+    }
+
+    .tab-buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @media (max-width: 480px) {
+      .glass-card {
+        padding: 40px 25px;
+        max-width: 95%;
+      }
+
+      .title {
+        font-size: 28px;
+      }
+
+      .navbar {
+        padding: 10px 20px;
+      }
+
+      .navbar-logo lord-icon {
+        width: 36px;
+        height: 36px;
+      }
+
+      .navbar-title {
+        font-size: 18px;
+      }
+
+      .datetime-display {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+
+      .language-switcher select {
+        padding: 8px 30px 8px 12px;
+        font-size: 13px;
+      }
+
+      .celestial-toggle {
+        width: 50px;
+        height: 25px;
+      }
+
+      .toggle-slider {
+        width: 20px;
+        height: 20px;
+        top: 2.5px;
+        left: 2.5px;
+      }
+
+      body.dark-mode .toggle-slider {
+        transform: translateX(25px);
+      }
+
+      .sun, .moon {
+        font-size: 12px;
+      }
+
+      button {
+        padding: 14px;
+        font-size: 15px;
+      }
+
+      .quick-access {
+        bottom: 15px;
+        right: 15px;
+      }
+
+      .quick-access button {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    @keyframes rotateShadow {
+      0% { box-shadow: -3px -3px 10px 2px #08a250, 3px 3px 10px 2px #6dd9a0; }
+      25% { box-shadow: -3px 3px 10px 2px #08a250, 3px -3px 10px 2px #046c37; }
+      50% { box-shadow: 3px 3px 10px 2px #08a250, -3px -3px 10px 2px #046c37; }
+      75% { box-shadow: 3px -3px 10px 2px #08a250, -3px 3px 10px 2px #6dd9a0; }
+      100% { box-shadow: -3px -3px 10px 2px #08a250, 3px 3px 10px 2px #6dd9a0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-dynamic"></div>
+  <div class="navbar">
+    <div class="navbar-logo">
+      <lord-icon
+          src="https://cdn.lordicon.com/dyfvgeqj.json"
+          trigger="hover"
+          state="hover-heartbeat"
+          style="width:44px;height:44px">
+      </lord-icon>
+      <span class="navbar-title">KOÜ Diyabet Takip Sistemi</span>
+    </div>
+    <div class="navbar-right">
+      <div class="datetime-display" id="datetimeDisplay"></div>
+      <div class="language-switcher">
+        <select id="languageSelect" onchange="changeLanguage()" aria-label="Dil Seçimi">
+          <option value="tr" selected>Türkçe</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="celestial-toggle" id="darkModeToggle" role="button" aria-label="Karanlık Modu Aç/Kapat" tabindex="0">
+        <div class="toggle-background">
+          <div class="star" style="--delay: 0.5s;"></div>
+          <div class="star" style="--delay: 1s;"></div>
+          <div class="star" style="--delay: 1.5s;"></div>
+        </div>
+        <div class="toggle-slider">
+          <span class="sun">☀️</span>
+          <span class="moon">🌙</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <canvas id="particle-bg"></canvas>
+  <div class="glass-card">
+    <div class="icon-box">
+      <lord-icon id="userIcon"
+          src="https://cdn.lordicon.com/ipbffwpl.json"
+          trigger="loop"
+          delay="800"
+          colors="primary:#ffffff,secondary:#e83a30"
+          style="width:130px;height:130px">
+      </lord-icon>
+    </div>
+    <div class="title" data-lang-key="system_title">Diyabet Takip Sistemi</div>
+    <div class="tab-buttons">
+
+    </div>
+
+    <!-- Login Tab -->
+    <div id="login" class="tab-content active">
+      <div class="subtitle" data-lang-key="login_prompt">Lütfen giriş bilgilerinizi giriniz</div>
+      <form id="loginForm" action="/" method="post" onsubmit="return login(event)">
+        <label for="role" data-lang-key="user_type">
+          Kullanıcı Türü
+          <span class="tooltip" data-lang-key="user_type_tooltip">Hesap türünüzü seçin</span>
+        </label>
+        <select id="role" onchange="updateIcon()" required aria-label="Kullanıcı Türü">
+          <option value="" selected disabled data-lang-key="select">Seçiniz</option>
+          <option value="doktor" data-lang-key="doctor">Doktor</option>
+          <option value="hasta" data-lang-key="patient">Hasta</option>
+        </select>
+
+        <label for="tc" data-lang-key="tc_id">
+          T.C. Kimlik No
+          <span class="tooltip" data-lang-key="tc_id_tooltip">11 haneli kimlik numaranızı girin</span>
+        </label>
+        <div class="input-group">
+          <input type="text" id="tc" maxlength="11" placeholder="11 haneli T.C. kimlik numarası" required aria-label="T.C. Kimlik No">
+        </div>
+
+        <label for="password" data-lang-key="password">
+          Şifre
+          <span class="tooltip" data-lang-key="password_tooltip">Güvenli şifrenizi girin</span>
+        </label>
+        <div class="input-group">
+          <input type="password" id="password" placeholder="Şifreniz" required aria-label="Şifre">
+          <span class="input-icon" id="togglePassword" aria-label="Şifre Göster/Gizle">
+            <lord-icon
+              id="eyeIcon"
+              src="https://cdn.lordicon.com/knitbwfa.json"
+              trigger="click"
+              state="morph-lashes"
+              colors="primary:#121331,secondary:#ebe6ef,tertiary:#3a3347,quaternary:#08a250,quinary:#f9c9c0,senary:#f24c00"
+              style="width:30px;height:30px">
+            </lord-icon>
+          </span>
+        </div>
+
+        <div class="forgot-password">
+          <a href="#" data-lang-key="forgot_password" aria-label="Şifremi Unuttum">Şifremi Unuttum</a>
+        </div>
+
+        <button type="submit" id="loginButton" data-lang-key="login" aria-label="Giriş Yap">
+          Giriş Yap
+          <div class="loader" id="loader"></div>
+        </button>
+      </form>
+    </div>
+
+
+
+    <div class="footer-text">© 2025 Diyabet Takip Sistemi - Tüm Hakları Saklıdır</div>
+  </div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <lord-icon
+        src="https://cdn.lordicon.com/tyntlpjn.json"
+        trigger="loop"
+        delay="600"
+        state="hover-rotate-up-to-down"
+        colors="primary:#000000,secondary:#4bb3fd"
+        style="width:140px;height:140px">
+    </lord-icon>
+  </div>
+  <div class="quick-access" style="align-items: center;">
+    <button id="contactSupport" aria-label="Destek ile İletişime Geç">
+      <lord-icon
+          src="https://cdn.lordicon.com/nzixoeyk.json"
+          trigger="hover"
+          colors="primary:black"
+          style="width:28px;height:28px">
+      </lord-icon>
+    </button>
+    <span style="color:black; font-size:12px; margin-top:4px;">E-posta</span>
+  </div>
+
+  <script>
+    // Language Translations
+    const translations = {
+      tr: {
+        system_title: "Diyabet Takip Sistemi",
+        login_prompt: "Lütfen giriş bilgilerinizi giriniz",
+        user_type: "Kullanıcı Türü",
+        select: "Seçiniz",
+        doctor: "Doktor",
+        patient: "Hasta",
+        tc_id: "T.C. Kimlik No",
+        password: "Şifre",
+        forgot_password: "Şifremi Unuttum",
+        login: "Giriş Yap",
+        user_type_tooltip: "Hesap türünüzü seçin",
+        tc_id_tooltip: "11 haneli kimlik numaranızı girin",
+        password_tooltip: "Güvenli şifrenizi girin",
+        tc_error: "T.C. Kimlik No 11 haneli bir sayı olmalıdır.",
+        role_error: "Lütfen kullanıcı türünü seçiniz.",
+        password_error: "Lütfen şifrenizi giriniz.",
+        login_failed: "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.",
+        register: "Kaydol",
+        register_prompt: "Yeni bir hesap oluşturun",
+        confirm_password: "Şifreyi Onayla",
+        confirm_password_tooltip: "Şifrenizi tekrar girin",
+        register_success: "Kayıt başarılı! Şimdi giriş yapabilirsiniz.",
+        register_failed: "Bu T.C. kimlik numarası zaten kayıtlı.",
+        password_mismatch: "Şifreler eşleşmiyor."
+      },
+      en: {
+        system_title: "Diabetes Tracking System",
+        login_prompt: "Please enter your login details",
+        user_type: "User Type",
+        select: "Select",
+        doctor: "Doctor",
+        patient: "Patient",
+        tc_id: "National ID",
+        password: "Password",
+        forgot_password: "Forgot Password",
+        login: "Log In",
+        user_type_tooltip: "Select your account type",
+        tc_id_tooltip: "Enter your 11-digit ID number",
+        password_tooltip: "Enter your secure password",
+        tc_error: "National ID must be an 11-digit number.",
+        role_error: "Please select a user type.",
+        password_error: "Please enter your password.",
+        login_failed: "Login failed. Please check your credentials.",
+        register: "Register",
+        register_prompt: "Create a new account",
+        confirm_password: "Confirm Password",
+        confirm_password_tooltip: "Re-enter your password",
+        register_success: "Registration successful! You can now log in.",
+        register_failed: "This National ID is already registered.",
+        password_mismatch: "Passwords do not match."
+      }
+    };
+
+    // Language Change
+    function changeLanguage() {
+      const lang = document.getElementById('languageSelect').value;
+      document.querySelectorAll('[data-lang-key]').forEach(element => {
+        const key = element.getAttribute('data-lang-key');
+        element.textContent = translations[lang][key];
+      });
+
+      document.getElementById('tc').placeholder = lang === 'tr' ? "11 haneli T.C. kimlik numarası" : "11-digit National ID";
+      document.getElementById('password').placeholder = translations[lang].password;
+      document.getElementById('regTc').placeholder = lang === 'tr' ? "11 haneli T.C. kimlik numarası" : "11-digit National ID";
+      document.getElementById('regPassword').placeholder = translations[lang].password;
+      document.getElementById('confirmPassword').placeholder = translations[lang].confirm_password;
+    }
+
+    // Live Date-Time Display
+    function updateDateTime() {
+      const datetimeDisplay = document.getElementById('datetimeDisplay');
+      const lang = document.getElementById('languageSelect').value;
+      const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Europe/Istanbul'
+      };
+      const date = new Date().toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', options);
+      datetimeDisplay.textContent = date;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // Enhanced Particle Background
+    const canvas = document.getElementById('particle-bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const particleCount = 120;
+    let pulsePoints = [];
+    let pulseTime = 0;
+    let mouse = { x: null, y: null };
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2.5 + 1;
+        this.speedX = Math.random() * 0.075 - 0.0375;
+        this.speedY = Math.random() * 0.075 - 0.0375;
+        this.opacity = Math.random() * 0.4 + 0.3;
+        this.hue = Math.random() * 360;
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+        if (mouse.x && mouse.y) {
+          const dx = this.x - mouse.x;
+          const dy = this.y - mouse.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 100) {
+            const angle = Math.atan2(dy, dx);
+            this.speedX += Math.cos(angle) * 0.05;
+            this.speedY += Math.sin(angle) * 0.05;
+            this.opacity = Math.min(0.8, this.opacity + 0.02);
+          } else {
+            this.opacity = Math.max(0.3, this.opacity - 0.01);
+          }
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = `hsla(${this.hue}, 70%, 60%, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function createPulseWave() {
+      pulsePoints = [];
+      const points = 150;
+      const waveHeight = 30;
+      const waveSpeed = 0.05;
+      for (let i = 0; i < points; i++) {
+        const x = (canvas.width / points) * i;
+        const y = canvas.height * 0.85 + Math.sin(i * 0.08 + pulseTime * waveSpeed) * waveHeight;
+        pulsePoints.push({ x, y });
+      }
+    }
+
+    function drawPulseWave() {
+      ctx.beginPath();
+      ctx.strokeStyle = document.body.classList.contains('dark-mode')
+        ? 'rgba(100, 150, 255, 0.6)'
+        : 'rgba(0, 150, 255, 0.6)';
+      ctx.lineWidth = 3;
+      ctx.moveTo(pulsePoints[0].x, pulsePoints[0].y);
+      for (let i = 1; i < pulsePoints.length; i++) {
+        ctx.lineTo(pulsePoints[i].x, pulsePoints[i].y);
+      }
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = document.body.classList.contains('dark-mode')
+        ? 'rgba(100, 200, 255, 0.3)'
+        : 'rgba(0, 200, 255, 0.3)';
+      ctx.lineWidth = 8;
+      ctx.moveTo(pulsePoints[0].x, pulsePoints[0].y);
+      for (let i = 1; i < pulsePoints.length; i++) {
+        ctx.lineTo(pulsePoints[i].x, pulsePoints[i].y);
+      }
+      ctx.stroke();
+    }
+
+    function connectParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = Math.abs(particles[i].x - particles[j].x);
+          const dy = Math.abs(particles[i].y - particles[j].y);
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 150) {
+            ctx.beginPath();
+            ctx.strokeStyle = `hsla(${particles[i].hue}, 70%, 60%, ${0.15 * (1 - distance / 150)})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animateBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+
+      connectParticles();
+      pulseTime += 0.5;
+      createPulseWave();
+      drawPulseWave();
+
+      requestAnimationFrame(animateBackground);
+    }
+
+    initParticles();
+    createPulseWave();
+    animateBackground();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      createPulseWave();
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+    });
+
+    window.addEventListener('mouseout', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+
+    // Dark Mode Toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    });
+
+    darkModeToggle.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        darkModeToggle.click();
+      }
+    });
+
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // Tab Switching
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
+
+      // Update icon based on selected tab
+      updateIcon();
+    }
+
+    // Icon Update
+    function updateIcon() {
+      const role = document.getElementById('role').value || document.getElementById('regRole').value;
+      const iconBox = document.querySelector('.icon-box');
+
+      if (role === 'doktor') {
+        iconBox.innerHTML = `
+          <lord-icon id="userIcon"
+              src="https://cdn.lordicon.com/mwhabkof.json"
+              trigger="loop"
+              delay="800"
+              stroke="light"
+              state="hover-jump"
+              colors="primary:#ffffff,secondary:#f9c9c0,tertiary:#4bb3fd,quaternary:#b26836,quinary:#ebe6ef"
+              style="width:130px;height:130px">
+          </lord-icon>
+        `;
+      } else if (role === 'hasta') {
+        iconBox.innerHTML = `
+          <lord-icon id="userIcon"
+              src="https://cdn.lordicon.com/kpjdxodr.json"
+              trigger="loop"
+              delay="800"
+              stroke="light"
+              colors="primary:#ffffff,secondary:#f4a09c,tertiary:#faddd1,quaternary:#e83a30,quinary:#b26836"
+              style="width:130px;height:130px">
+          </lord-icon>
+        `;
+      } else {
+        iconBox.innerHTML = `
+          <lord-icon id="userIcon"
+              src="https://cdn.lordicon.com/ipbffwpl.json"
+              trigger="loop"
+              delay="800"
+              colors="primary:#ffffff,secondary:#e83a30"
+              style="width:130px;height:130px">
+          </lord-icon>
+        `;
+      }
+    }
+
+    // Password Visibility Toggle for Login
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    let isPasswordVisible = false;
+
+    togglePassword.addEventListener('click', () => {
+      isPasswordVisible = !isPasswordVisible;
+      passwordInput.type = isPasswordVisible ? 'text' : 'password';
+      eyeIcon.setAttribute('state', isPasswordVisible ? 'hover-morph' : 'morph-lashes');
+    });
+
+    // Password Visibility Toggle for Register
+    const regPasswordInput = document.getElementById('regPassword');
+    const toggleRegPassword = document.getElementById('toggleRegPassword');
+    const regEyeIcon = document.getElementById('regEyeIcon');
+
+    let isRegPasswordVisible = false;
+
+    toggleRegPassword.addEventListener('click', () => {
+      isRegPasswordVisible = !isRegPasswordVisible;
+      regPasswordInput.type = isRegPasswordVisible ? 'text' : 'password';
+      regEyeIcon.setAttribute('state', isRegPasswordVisible ? 'hover-morph' : 'morph-lashes');
+    });
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') {
+        if (document.getElementById('login').classList.contains('active')) {
+          document.getElementById('loginButton').click();
+        } else {
+          document.getElementById('registerButton').click();
+        }
+      }
+    });
+
+    // Navbar Scroll Effect
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      const navbar = document.querySelector('.navbar');
+      if (currentScroll > lastScroll && currentScroll > 100) {
+        navbar.classList.add('hidden');
+      } else {
+        navbar.classList.remove('hidden');
+      }
+      lastScroll = currentScroll;
+    });
+
+    // Contact Support
+    document.getElementById('contactSupport').addEventListener('click', () => {
+      window.location.href = 'mailto:furkan19051905gs@gmail.com';
+    });
+
+    // User Data Storage
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+
+    // Register Function
+    async function register(event) {
+      event.preventDefault();
+      const role = document.getElementById('regRole').value;
+      const tc = document.getElementById('regTc').value;
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const registerButton = document.getElementById('registerButton');
+      const loader = document.getElementById('regLoader');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const lang = document.getElementById('languageSelect').value;
+
+      // Input validation
+      if (!role) {
+        alert(translations[lang].role_error);
+        return false;
+      }
+
+      if (tc.length !== 11 || isNaN(tc)) {
+        alert(translations[lang].tc_error);
+        return false;
+      }
+
+      if (!password) {
+        alert(translations[lang].password_error);
+        return false;
+      }
+
+      if (password !== confirmPassword) {
+        alert(translations[lang].password_mismatch);
+        return false;
+      }
+
+      // Check if TC already exists
+      if (users.some(user => user.tc === tc)) {
+        alert(translations[lang].register_failed);
+        return false;
+      }
+
+      // Show loading overlay
+      loadingOverlay.classList.add('active');
+      registerButton.disabled = true;
+      loader.style.display = 'block';
+
+      try {
+        // Simulate registration delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Add new user to storage
+        users.push({ tc, password, role });
+        localStorage.setItem('users', JSON.stringify(users));
+
+        alert(translations[lang].register_success);
+        showTab('login'); // Switch to login tab after successful registration
+      } catch (error) {
+        alert(translations[lang].register_failed);
+      } finally {
+        loadingOverlay.classList.remove('active');
+        registerButton.disabled = false;
+        loader.style.display = 'none';
+      }
+
+      return false;
+    }
+
+    async function login(event) {
+  event.preventDefault();
+  const role = document.getElementById('role').value;
+  const tc = document.getElementById('tc').value;
+  const password = document.getElementById('password').value;
+  const lang = document.getElementById('languageSelect').value;
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loginButton = document.getElementById('loginButton');
+  const loader = document.getElementById('loader');
+
+  console.log('Giriş verileri:', { role, tc, password });
+
+  // Input validation
+  if (!role) {
+    alert(translations[lang].role_error);
+    return false;
+  }
+
+  if (tc.length !== 11 || isNaN(tc)) {
+    alert(translations[lang].tc_error);
+    return false;
+  }
+
+  if (!password) {
+    alert(translations[lang].password_error);
+    return false;
+  }
+
+  // Show loading overlay
+  loadingOverlay.classList.add('active');
+  loginButton.disabled = true;
+  loader.style.display = 'block';
+
+  try {
+    // FastAPI'ye veri gönder
+    const data = {
+      url: 'http://127.0.0.1:8000/login',
+      body: { role, username: tc, password }
+    };
+    console.log('Gönderilen veri:', data);
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log('FastAPI yanıtı:', response);
+
+    // Yanıtı işle
+    if (response.message === 'Giriş başarılı!') {
+      if (response.role === 'doktor') {
+        window.location.href = 'doktor_panel.html';
+      } else if (response.role === 'hasta') {
+        window.location.href = 'hasta_panel.html';
+      }
+    }
+  } catch (error) {
+    console.error('Hata:', error.message);
+    alert(translations[lang].login_failed + ': ' + error.message);
+  } finally {
+    loadingOverlay.classList.remove('active');
+    loginButton.disabled = false;
+    loader.style.display = 'none';
+  }
+
+  return false;
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Diyabet Takip Sistemi - Doktor Paneli">
+  <title>Diyabet Takip Sistemi - Doktor Paneli</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.lordicon.com/lordicon.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      background: none;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .background-dynamic {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      background: url('../static/image/kou.png') no-repeat center center;
+      background-size: cover;
+      opacity: 0.7;
+      filter: blur(5px);
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+
+    body.dark-mode .background-dynamic {
+      filter: blur(5px) brightness(0.5);
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 12px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(8, 162, 80, 0.05);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      z-index: 1000;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease;
+    }
+
+    .navbar.hidden {
+      transform: translateY(-100%);
+    }
+
+    body.dark-mode .navbar {
+      background: rgba(40, 40, 40, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .navbar-logo:hover {
+      transform: scale(1.05);
+    }
+
+    .navbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      background: linear-gradient(135deg, #068540, #4f9d68, #a4d9b3, #068540);
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 8px rgba(8, 162, 80, 0.3);
+      animation: shine 7s linear infinite;
+    }
+
+    body.dark-mode .navbar-title {
+      text-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes shine {
+      0% { background-position: 0% center; }
+      100% { background-position: 400% center; }
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .datetime-display {
+      font-size: 14px;
+      font-weight: 500;
+      color: #0d3b66;
+      background: rgba(168, 213, 186, 0.3);
+      padding: 10px 15px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .datetime-display:hover {
+      transform: scale(1.05);
+    }
+
+    body.dark-mode .datetime-display {
+      color: #e0e0e0;
+      background: rgba(50, 50, 50, 0.5);
+    }
+
+    .language-switcher select {
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0d3b66;
+      background: rgba(168, 213, 186, 0.3);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      appearance: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .language-switcher select:hover {
+      transform: scale(1.05);
+    }
+
+    body.dark-mode .language-switcher select {
+      background: rgba(50, 50, 50, 0.5);
+      color: #fff;
+    }
+
+    .celestial-toggle {
+      width: 60px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: background 0.5s ease;
+    }
+
+    body.dark-mode .celestial-toggle {
+      background: linear-gradient(90deg, #2b2b2b, #1a1a1a);
+    }
+
+    .toggle-slider {
+      width: 24px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 40%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.dark-mode .toggle-slider {
+      transform: translateX(30px);
+      background: #2b2b2b;
+    }
+
+    .sun, .moon {
+      position: absolute;
+      font-size: 14px;
+      transition: opacity 0.3s ease;
+    }
+
+    .sun { opacity: 1; color: #f1c40f; }
+    .moon { opacity: 0; color: #ecf0f1; }
+    body.dark-mode .sun { opacity: 0; }
+    body.dark-mode .moon { opacity: 1; }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle 2s infinite;
+      animation-delay: var(--delay);
+    }
+
+    .star:nth-child(1) { top: 20%; left: 20%; }
+    .star:nth-child(2) { top: 50%; left: 25%; }
+    .star:nth-child(3) { top: 30%; left: 40%; }
+    body.dark-mode .star { opacity: 0.7; }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.5); }
+    }
+
+    .sidebar {
+      width: 250px;
+      background: linear-gradient(
+        to bottom,
+        rgba(193, 255, 193, 0.4),
+        rgba(160, 222, 187, 0.4)
+      );
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.3);
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 80px;
+      z-index: 999;
+    }
+
+    body.dark-mode .sidebar {
+      background: rgba(40, 40, 40, 0.4);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-section {
+      text-align: center;
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+    }
+
+    body.dark-mode .profile-section {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-picture-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+    }
+
+    .profile-picture {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border: 2px solid rgba(8, 162, 80, 0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .profile-picture.uploaded {
+      box-shadow: 0 0 15px rgba(8, 162, 80, 0.8), 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-mode .profile-picture {
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark-mode .profile-picture.uploaded {
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-picture-placeholder::before {
+      content: "📷";
+      font-size: 60px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #0d3b66;
+    }
+
+    body.dark-mode .profile-picture-placeholder::before {
+      color: #e0e0e0;
+    }
+
+    .upload-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(8, 162, 80, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+    }
+
+    .profile-picture-container:hover .upload-overlay {
+      opacity: 1;
+    }
+
+    .upload-overlay span {
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .remove-photo-x {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 24px;
+      height: 24px;
+      background: #ff4d4d;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    .remove-photo-x:hover {
+      background: #b30000;
+      transform: scale(1.1);
+    }
+
+    .welcome-message {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #0d3b66;
+      opacity: 0;
+      animation: typeWelcome 2s forwards;
+    }
+
+    @keyframes typeWelcome {
+      0% { opacity: 0; width: 0; }
+      50% { opacity: 1; width: 100%; }
+      100% { opacity: 1; }
+    }
+
+    body.dark-mode .welcome-message {
+      color: #e0e0e0;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar li {
+      padding: 15px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #0d3b66;
+      transition: background 0.3s ease;
+      position: relative;
+    }
+
+    .sidebar li:hover {
+      background: rgba(39, 36, 121, 0.2);
+    }
+
+    .sidebar li:hover lord-icon {
+      animation: bounceIcon 0.5s ease;
+    }
+
+    @keyframes bounceIcon {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .sidebar li.active {
+      background: rgba(8, 162, 80, 0.3);
+      color: #f7fff8;
+    }
+
+    .notification-badge {
+      background: #ff4d4d;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 50%;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    body.dark-mode .notification-badge {
+      background: #ff4d4d;
+    }
+
+    .content {
+      margin-left: 250px;
+      padding: 80px 20px 20px;
+      flex-grow: 1;
+    }
+
+    .glass-card {
+      background: rgba(152, 175, 161, 0.25);
+      backdrop-filter: blur(20px);
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35), 0 5px 15px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      margin-bottom: 20px;
+    }
+
+    body.dark-mode .glass-card {
+      background: rgba(40, 40, 40, 0.4);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0d3b66;
+      margin-bottom: 20px;
+    }
+
+    body.dark-mode .title {
+      color: #e0e0e0;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-nav button {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #08a250, #046c37);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .tab-nav button:hover {
+      background: linear-gradient(135deg, #046c37, #08a250);
+      transform: translateY(-2px);
+    }
+
+    .tab-nav button.active {
+      background: linear-gradient(135deg, #046c37, #08a250);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-mode .tab-nav button {
+      background: linear-gradient(135deg, #08a250, #046c37);
+    }
+
+    body.dark-mode .tab-nav button.active {
+      background: linear-gradient(135deg, #046c37, #08a250);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .filter-section {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: #0d3b66;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    body.dark-mode .form-group label {
+      color: #d0d0d0;
+    }
+
+    .symptom-container {
+      background: rgba(152, 175, 161, 0.25);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    body.dark-mode .symptom-container {
+      background: rgba(40, 40, 40, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .symptom-container span {
+      display: inline-block;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      color: #0d3b66;
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    body.dark-mode .symptom-container span {
+      color: #d0d0d0;
+      background: rgba(50, 50, 50, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .symptom-container span:hover {
+      background: rgba(8, 162, 80, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .symptom-container span[data-selected="true"] {
+      background: linear-gradient(135deg, #08a250, #046c37);
+      color: white;
+      border: none;
+    }
+
+    body.dark-mode .symptom-container span[data-selected="true"] {
+      background: linear-gradient(135deg, #08a250, #046c37);
+      color: white;
+    }
+
+    select, input, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.3);
+      color: #0d3b66;
+      width: 100%;
+    }
+
+    body.dark-mode select, body.dark-mode input, body.dark-mode textarea {
+      border: 1px solid #555;
+      background: rgba(51, 51, 51, 0.5);
+      color: #fff;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #08a250, #046c37);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #046c37, #08a250);
+      transform: translateY(-2px);
+    }
+
+    button.delete {
+      background: linear-gradient(135deg, #ff4d4d, #b30000);
+      padding: 10px 31px;
+      margin-top: 7px;
+    }
+
+    button.delete:hover {
+      background: linear-gradient(135deg, #b30000, #ff4d4d);
+      padding: 10px 31px;
+      margin-top: 7px;
+    }
+
+    body.dark-mode button.delete {
+      background: linear-gradient(135deg, #ff4d4d, #b30000);
+      padding: 10px 31px;
+      margin-top: 7px;
+    }
+
+    body.dark-mode button.delete:hover {
+      background: linear-gradient(135deg, #b30000, #ff4d4d);
+      padding: 10px 31px;
+      margin-top: 7px;
+    }
+
+    button.edit {
+background: linear-gradient(135deg,
+  #6faaff,
+  #4b7bec,
+  #3d5fe8,
+  #2e49c7,
+  #1f33a6
+);
+        padding: 10px 13px;
+
+    }
+
+    button.edit:hover {
+      background: linear-gradient(135deg, #3867d6, #4b7bec);
+padding: 10px 13px;
+    }
+
+    .edit-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+    }
+
+    body.dark-mode .edit-form {
+      background: rgba(50, 50, 50, 0.5);
+    }
+
+    .patient-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(173, 173, 173, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .patient-table th, .patient-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .patient-table th {
+      background: rgba(13, 146, 67, 0.453);
+      color: #fff;
+    }
+
+    body.dark-mode .patient-table th {
+      background: rgba(8, 162, 80, 0.5);
+    }
+
+    .chart-container {
+      max-width: 600px;
+      margin: 20px 0;
+    }
+
+    .chart-placeholder {
+      text-align: center;
+      font-size: 18px;
+      color: #0d3b66;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+
+    body.dark-mode .chart-placeholder {
+      color: #e0e0e0;
+      background: rgba(50, 50, 50, 0.5);
+    }
+
+    .alerts-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .alerts-list li {
+      padding: 10px;
+      background: rgba(255, 0, 0, 0.1);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .message-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+    }
+
+    body.dark-mode .message-list {
+      background: rgba(50, 50, 50, 0.5);
+    }
+
+    .message-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      background: rgba(8, 162, 80, 0.1);
+    }
+
+    body.dark-mode .message-item {
+      background: rgba(8, 162, 80, 0.2);
+    }
+
+    .message-item.received {
+      background: rgba(39, 36, 121, 0.1);
+    }
+
+    body.dark-mode .message-item.received {
+      background: rgba(39, 36, 121, 0.2);
+    }
+
+    .message-item p {
+      margin: 0;
+      font-size: 14px;
+      color: #0d3b66;
+    }
+
+    body.dark-mode .message-item p {
+      color: #e0e0e0;
+    }
+
+    .message-item small {
+      font-size: 12px;
+      color: #555;
+    }
+
+    body.dark-mode .message-item small {
+      color: #bbb;
+    }
+
+    .message-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    textarea {
+      resize: none;
+      height: 100px;
+    }
+
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeInOverlay 0.3s ease;
+    }
+
+    body.dark-mode .loading-overlay {
+      background: rgba(0, 0, 0, 0.75);
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .content {
+        margin-left: 200px;
+      }
+
+      .filter-section {
+        flex-direction: column;
+      }
+
+      .form-group {
+        width: 100%;
+      }
+
+      .tab-nav {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .profile-picture {
+        width: 120px;
+        height: 120px;
+      }
+
+      .profile-picture-container {
+        width: 120px;
+        height: 120px;
+      }
+
+      .remove-photo-x {
+        top: -8px;
+        right: -8px;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding-top: 60px;
+      }
+
+      .content {
+        margin-left: 0;
+        padding-top: 120px;
+      }
+
+      .patient-table th, .patient-table td {
+        font-size: 12px;
+        padding: 10px;
+      }
+
+      .symptom-container {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-picture {
+        width: 90px;
+        height: 90px;
+      }
+
+      .profile-picture-container {
+        width: 90px;
+        height: 90px;
+      }
+
+      .remove-photo-x {
+        top: -6px;
+        right: -6px;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+      }
+    }
+    /* alerts bölümü tüm kutuyu kapsar */
+#alerts.section {
+  display: none; /* Varsayılan olarak gizli */
+  padding: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Mesaj konteyneri */
+.message-container {
+  background: rgba(253, 106, 106, 0.2);
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 15px;
+  margin-top: 30px;
+}
+
+/* Uyarı listesi */
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Tek bir mesaj kutusu (isterseniz dinamik olarak JS ile oluşturabilirsiniz) */
+.message-list .message {
+  background: rgba(253, 106, 106, 0.2);
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  border-left: 4px solid #f5c518; /* Sarı tonlu uyarı şeridi */
+}
+
+  </style>
+</head>
+<body>
+<div class="background-dynamic"></div>
+  <div class="navbar">
+    <div class="navbar-logo">
+      <lord-icon src="https://cdn.lordicon.com/dyfvgeqj.json" trigger="hover" state="hover-heartbeat" style="width:44px;height:44px"></lord-icon>
+      <span class="navbar-title">KOÜ Diyabet Takip Sistemi</span>
+    </div>
+    <div class="navbar-right">
+      <div class="datetime-display" id="datetimeDisplay"></div>
+      <div class="language-switcher">
+        <select id="languageSelect" onchange="changeLanguage()">
+          <option value="tr" selected>Türkçe</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="celestial-toggle" id="darkModeToggle" role="button" aria-label="Karanlık Modu Aç/Kapat" tabindex="0">
+        <div class="toggle-background">
+          <div class="star" style="--delay: 0.5s;"></div>
+          <div class="star" style="--delay: 1s;"></div>
+          <div class="star" style="--delay: 1.5s;"></div>
+        </div>
+        <div class="toggle-slider">
+          <span class="sun">☀️</span>
+          <span class="moon">🌙</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar">
+    <div class="profile-section">
+    <div class="profile-picture-container">
+      <img id="profilePicture" class="profile-picture profile-picture-placeholder" alt="Profile Picture">
+      <div class="upload-overlay">  <!-- This is what the user clicks -->
+        <span data-lang-key="upload_photo">Fotoğraf Yükle</span>
+      </div>
+      <input type="file" id="profilePictureInput" accept="image/*" style="display: none;"> <!-- This should open -->
+      <div class="remove-photo-x" id="removePhotoX" onclick="removeProfilePicture()">X</div>
+    </div>
+      <div class="welcome-message" id="welcomeMessage">Hoşgeldiniz</div>
+    </div>
+    <ul>
+      <li class="active" onclick="showSection('patients')"><lord-icon src="https://cdn.lordicon.com/kpjdxodr.json" trigger="hover" style="width:24px;height:24px"></lord-icon> <span data-lang-key="patients">Hastalar</span></li>
+      <li onclick="showSection('charts')"><lord-icon src="https://cdn.lordicon.com/qykfmgzs.json" trigger="hover" style="width:24px;height:24px"></lord-icon> <span data-lang-key="charts">Grafikler</span></li>
+      <li onclick="showSection('inbox')"><lord-icon src="https://cdn.lordicon.com/fdxqrdsw.json" trigger="hover" style="width:24px;height:24px"></lord-icon> <span data-lang-key="inbox">Gelen Kutusu</span></li>
+      <li onclick="showSection('alerts')"><lord-icon src="https://cdn.lordicon.com/axrdeqnh.json" trigger="hover" style="width:24px;height:24px"></lord-icon> <span data-lang-key="alerts">Uyarılar</span><div class="notification-badge" id="alertBadge">0</div></li>
+      <li onclick="logout()"><lord-icon src="https://cdn.lordicon.com/vfevwnny.json" trigger="hover" style="width:24px;height:24px"></lord-icon> <span data-lang-key="logout">Çıkış Yap</span></li>
+    </ul>
+  </div>
+  <div class="content">
+    <div id="patients" class="section">
+      <div class="glass-card">
+        <div class="title" data-lang-key="patients">Hastalar</div>
+        <div class="tab-nav">
+          <button class="tab-button active" onclick="switchTab('patients-tab')" data-tab="patients-tab" data-lang-key="my_patients">Hastalarım</button>
+          <button class="tab-button" onclick="switchTab('add-patient-tab')" data-tab="add-patient-tab" data-lang-key="add_patient">Hasta Ekle</button>
+          <button class="tab-button" onclick="switchTab('blood-sugar-entry-tab')" data-tab="blood-sugar-entry-tab" data-lang-key="blood_sugar_entry">Kan Şekeri Girişi</button>
+        </div>
+        <div id="patients-tab" class="tab-content active">
+          <div class="filter-section">
+            <select id="bloodSugarFilter">
+              <option value="" data-lang-key="blood_sugar">Kan Şekeri Seviyesi</option>
+              <option value="hipo"><70 mg/dL (Hipoglisemi)</option>
+              <option value="normal"><=110 mg/dL (Normal - Alt Düzey)</option>
+              <option value="ustnormal">120-190 mg/dL (Normal - Üst Düzey / Hafif Yüksek)</option>
+              <option value="hiper">>190 mg/dL (Hiperglisemi)</option>
+            </select>
+            <select id="symptomFilter">
+              <option value="" data-lang-key="symptoms">Belirtiler</option>
+              <option value="Nöropati">Nöropati</option>
+              <option value="Polifaji">Polifaji</option>
+              <option value="Yorgunluk">Yorgunluk</option>
+              <option value="Kilo Kaybı">Kilo Kaybı</option>
+              <option value="Poliüri">Poliüri</option>
+              <option value="Polidipsi">Polidipsi</option>
+              <option value="Bulanık Görme">Bulanık Görme</option>
+              <option value="Yaraların Yavaş İyileşmesi">Yaraların Yavaş İyileşmesi</option>
+            </select>
+            <button onclick="filterPatients()" data-lang-key="filter">Filtrele</button>
+          </div>
+          <table class="patient-table">
+            <thead>
+              <tr>
+                <th data-lang-key="name">Ad Soyad</th>
+                <th data-lang-key="tc">T.C. Kimlik No</th>
+                <th data-lang-key="blood_sugar">Son Kan Şekeri</th>
+                <th data-lang-key="symptoms">Belirtiler</th>
+                <th data-lang-key="diet">Diyet</th>
+                <th data-lang-key="exercise">Egzersiz</th>
+                <th data-lang-key="actions">Eylemler</th>
+              </tr>
+            </thead>
+            <tbody id="patientTableBody"></tbody>
+          </table>
+        </div>
+        <div id="add-patient-tab" class="tab-content">
+          <form id="addPatientForm" onsubmit="addPatient(event)">
+            <div class="form-group">
+              <label for="patientName" data-lang-key="name">Ad Soyad</label>
+              <input type="text" id="patientName" required placeholder="Ad Soyad girin">
+            </div>
+            <div class="form-group">
+              <label for="patientTc" data-lang-key="tc">T.C. Kimlik No</label>
+              <input type="text" id="patientTc" required pattern="\d{11}" placeholder="11 haneli T.C. Kimlik No">
+            </div>
+            <div class="form-group">
+              <label for="patientPassword" data-lang-key="patient_password">Hasta Giriş Şifresi</label>
+              <input type="password" id="patientPassword" required placeholder="Şifre girin" minlength="6">
+            </div>
+            <div class="form-group">
+              <label for="patientEmail" data-lang-key="email">E-posta</label>
+              <input type="email" id="patientEmail" placeholder="E-posta adresini girin">
+            </div>
+            <div class="form-group">
+              <label for="patientGender" data-lang-key="gender">Cinsiyet</label>
+              <select id="patientGender">
+                <option value="">Seçiniz</option>
+                <option value="Erkek">Erkek</option>
+                <option value="Kadın">Kadın</option>
+                <option value="Diğer">Diğer</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="patientDob" data-lang-key="dob">Doğum Tarihi</label>
+              <input type="date" id="patientDob" placeholder="Doğum tarihini seçin (isteğe bağlı)">
+            </div>
+            <div class="form-group">
+              <label data-lang-key="symptoms">Belirtiler</label>
+              <div class="symptom-container" id="patientSymptoms">
+                <span class="symptom-item" data-value="Nöropati" data-selected="false" onclick="toggleSymptom(this)">Nöropati</span>
+                <span class="symptom-item" data-value="Polifaji" data-selected="false" onclick="toggleSymptom(this)">Polifaji</span>
+                <span class="symptom-item" data-value="Yorgunluk" data-selected="false" onclick="toggleSymptom(this)">Yorgunluk</span>
+                <span class="symptom-item" data-value="Kilo Kaybı" data-selected="false" onclick="toggleSymptom(this)">Kilo Kaybı</span>
+                <span class="symptom-item" data-value="Poliüri" data-selected="false" onclick="toggleSymptom(this)">Poliüri</span>
+                <span class="symptom-item" data-value="Polidipsi" data-selected="false" onclick="toggleSymptom(this)">Polidipsi</span>
+                <span class="symptom-item" data-value="Bulanık Görme" data-selected="false" onclick="toggleSymptom(this)">Bulanık Görme</span>
+                <span class="symptom-item" data-value="Yaraların Yavaş İyileşmesi" data-selected="false" onclick="toggleSymptom(this)">Yaraların Yavaş İyileşmesi</span>
+              </div>
+            </div>
+            <button type="submit" data-lang-key="add_patient">Hasta Ekle</button>
+          </form>
+        </div>
+        <div id="blood-sugar-entry-tab" class="tab-content">
+          <form id="bloodSugarEntryForm" onsubmit="addBloodSugarEntry(event)">
+            <div class="form-group">
+              <label for="bloodSugarPatientTc" data-lang-key="tc">Hasta T.C. Kimlik No</label>
+              <input type="text" id="bloodSugarPatientTc" required pattern="\d{11}" placeholder="11 haneli T.C. Kimlik No">
+            </div>
+            <div class="form-group">
+              <label for="bloodSugarDate" data-lang-key="date">Tarih</label>
+              <input type="date" id="bloodSugarDate" required>
+            </div>
+            <div class="form-group">
+              <label for="bloodSugarTime" data-lang-key="time">Saat</label>
+              <input type="time" id="bloodSugarTime" required>
+            </div>
+            <div class="form-group">
+              <label for="bloodSugarValue" data-lang-key="blood_sugar">Kan Şekeri (mg/dL)</label>
+              <input type="number" id="bloodSugarValue" required min="0" placeholder="Kan şekeri değerini girin">
+            </div>
+            <button type="submit" data-lang-key="add_blood_sugar">Kan Şekeri Ekle</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div id="charts" class="section" style="display:none;">
+      <div class="glass-card">
+        <div class="title" data-lang-key="patient_data_view">Hasta Veri Görüntüleme</div>
+        <div class="form-group" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+          <label for="chartPatientTcInput" style="white-space: nowrap; margin-bottom: 0;" data-lang-key="tc">Hasta T.C.:</label>
+          <input type="text" id="chartPatientTcInput" placeholder="Hasta T.C. girin" style="flex-grow: 1;">
+          <button onclick="triggerFetchPatientData()" data-lang-key="fetch_data">Veri Getir</button>
+        </div>
+        <div id="bloodSugarChartTitle" class="title" style="display:none; margin-top: 20px;" data-lang-key="chart_blood_sugar">Kan Şekeri Grafiği</div>
+        <div id="bloodSugarChartPlaceholder" class="chart-placeholder" data-lang-key="select_patient">Lütfen bir hastanın T.C. numarasını girip "Veri Getir" butonuna tıklayın.</div>
+        <div class="chart-container" id="bloodSugarChartContainer" style="display:none;">
+          <canvas id="bloodSugarChart"></canvas>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="title" id="complianceChartsTitle" style="display:none; margin-top: 20px;" data-lang-key="chart_compliance">
+          Diyet ve Egzersiz Durumu
+        </div>
+        <div id="complianceChartsPlaceholder" class="chart-placeholder" data-lang-key="select_patient">
+          Veri getirildikten sonra burada gösterilecektir.
+        </div>
+        <div class="chart-grid-container" style="display:none;" id="complianceChartsGrid">
+          <div class="chart-wrapper" style="min-width: 300px; height: 300px;">
+            <canvas id="combinedComplianceChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="inbox" class="section" style="display:none;">
+      <div class="glass-card">
+        <div class="title" data-lang-key="inbox">Gelen Kutusu</div>
+        <div class="message-container">
+          <div class="form-group">
+            <label for="patientSelect" data-lang-key="select_patient_to_message">Mesaj Gönderilecek Hasta</label>
+            <select id="patientSelect" onchange="loadMessages()">
+              <option value="" data-lang-key="select_patient">Hasta Seçin</option>
+            </select>
+          </div>
+          <div class="message-list" id="messageList"></div>
+          <form id="messageForm" onsubmit="sendMessage(event)">
+            <div class="message-form">
+              <textarea id="messageContent" placeholder="Mesajınızı yazın..." required></textarea>
+              <button type="submit" data-lang-key="send_message">Mesaj Gönder</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div id="alerts" class="section" style="display:none;">
+      <div class="glass-card">
+        <div class="title" data-lang-key="alerts">Uyarılar</div>
+        <div class="message-container">
+          <div class="message-list" id="warningList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <lord-icon
+        src="https://cdn.lordicon.com/tyntlpjn.json"
+        trigger="loop"
+        delay="600"
+        state="hover-rotate-up-to-down"
+        colors="primary:#000000,secondary:#4bb3fd"
+        style="width:140px;height:140px">
+    </lord-icon>
+  </div>
+  <script>
+    const translations = {
+      tr: {
+        patients: "Hastalar",
+        charts: "Grafikler",
+        inbox: "Gelen Kutusu",
+        alerts: "Uyarılar",
+        logout: "Çıkış Yap",
+        patient_list: "Hasta Listesi",
+        blood_sugar: "Kan Şekeri Seviyesi",
+        symptoms: "Belirtiler",
+        filter: "Filtrele",
+        add_patient: "Hasta Ekle",
+        my_patients: "Hastalarım",
+        success: "Hasta başarıyla eklendi.",
+        edit_success: "Hasta bilgileri güncellendi.",
+        delete: "Sil",
+        confirm_delete: "Bu hastayı silmek istediğinizden emin misiniz?",
+        delete_success: "Hasta başarıyla silindi.",
+        chart_blood_sugar: "Kan Şekeri Grafiği",
+        chart_compliance: "Diyet ve Egzersiz Takibi",
+        chart_blood_sugar_patient: "{name} - Kan Şekeri Grafiği",
+        chart_compliance_patient: "{name} - Diyet ve Egzersiz Takibi",
+        select_patient: "Lütfen bir hasta seçin",
+        diet: "Diyet",
+        exercise: "Egzersiz",
+        hypo_alert: "{name}: Kan şekeri {value} mg/dL. Hipoglisemi riski!",
+        hyper_alert: "{name}: Kan şekeri {value} mg/dL. Hiperglisemi durumu!",
+        welcome: "Hoşgeldiniz ",
+        upload_photo: "Fotoğraf Yükle",
+        message_sent: "Mesaj gönderildi.",
+        select_patient_to_message: "Lütfen mesaj göndermek için bir hasta seçin.",
+        patient_password: "Hasta Giriş Şifresi",
+        password_required: "Şifre gereklidir.",
+        password_minlength: "Şifre en az 6 karakter olmalıdır.",
+        edit: "Düzenle",
+        save: "Kaydet"
+      },
+      en: {
+        patients: "Patients",
+        charts: "Charts",
+        inbox: "Inbox",
+        alerts: "Alerts",
+        logout: "Log Out",
+        patient_list: "Patient List",
+        blood_sugar: "Blood Sugar Level",
+        symptoms: "Symptoms",
+        filter: "Filter",
+        add_patient: "Add Patient",
+        my_patients: "My Patients",
+        success: "Patient added successfully.",
+        edit_success: "Patient information updated.",
+        delete: "Delete",
+        confirm_delete: "Are you sure you want to delete this patient?",
+        delete_success: "Patient deleted successfully.",
+        chart_blood_sugar: "Blood Sugar Chart",
+        chart_compliance: "Diet and Exercise Tracking",
+        chart_blood_sugar_patient: "{name} - Blood Sugar Chart",
+        chart_compliance_patient: "{name} - Diet and Exercise Tracking",
+        select_patient: "Please select a patient",
+        diet: "Diet",
+        exercise: "Exercise",
+        hypo_alert: "{name}: Blood sugar {value} mg/dL. Hypoglycemia risk!",
+        hyper_alert: "{name}: Blood sugar {value} mg/dL. Hyperglycemia condition!",
+        welcome: "Welcome ",
+        upload_photo: "Upload Photo",
+        message_sent: "Message sent.",
+        select_patient_to_message: "Please select a patient to send a message.",
+        patient_password: "Patient Login Password",
+        password_required: "Password is required.",
+        password_minlength: "Password must be at least 6 characters long.",
+        edit: "Edit",
+        save: "Save"
+      }
+    };
+
+    function changeLanguage() {
+      const lang = document.getElementById('languageSelect').value;
+      document.querySelectorAll('[data-lang-key]').forEach(element => {
+        const key = element.getAttribute('data-lang-key');
+        element.textContent = translations[lang][key];
+      });
+      document.querySelector('.tab-button[data-tab="patients-tab"]').textContent = translations[lang].my_patients;
+      document.querySelector('.tab-button[data-tab="add-patient-tab"]').textContent = translations[lang].add_patient;
+      document.getElementById('bloodSugarChartPlaceholder').textContent = translations[lang].select_patient;
+      document.getElementById('complianceChartPlaceholder').textContent = translations[lang].select_patient;
+      document.querySelector('.upload-overlay span').textContent = translations[lang].upload_photo;
+      renderCharts();
+      renderAlerts();
+      updateAlertBadge();
+      updateProfileSection();
+      populatePatientSelect();
+      loadMessages();
+      renderPatients(patients);
+    }
+
+let profilePictureElement;
+let removePhotoXButton;
+let profilePictureInput;
+let uploadOverlay;
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Global değişkenlere DOM elementlerini ata
+    profilePictureElement = document.getElementById('profilePicture');
+    removePhotoXButton = document.getElementById('removePhotoX');
+    profilePictureInput = document.getElementById('profilePictureInput');
+    uploadOverlay = document.querySelector('.upload-overlay');
+
+    // Elementlerin bulunup bulunmadığını kontrol et (opsiyonel ama iyi bir pratik)
+    if (!profilePictureElement) console.error("Hata: 'profilePicture' elementi bulunamadı!");
+    if (!removePhotoXButton) console.error("Hata: 'removePhotoXButton' elementi bulunamadı!");
+    if (!profilePictureInput) console.error("Hata: 'profilePictureInput' elementi bulunamadı!");
+    if (!uploadOverlay) console.error("Hata: 'uploadOverlay' elementi bulunamadı!");
+
+    // Profil resmi için başlangıç UI ayarları
+    if (profilePictureElement) {
+        profilePictureElement.src = '';
+        profilePictureElement.classList.add('profile-picture-placeholder');
+        profilePictureElement.classList.remove('uploaded');
+    }
+    if (removePhotoXButton) {
+        removePhotoXButton.style.display = 'none';
+    }
+
+    // uploadOverlay için olay dinleyicisi (dosya seçme penceresini açar)
+    // Bu elementler null değilse olay dinleyicilerini ekle
+    if (uploadOverlay && profilePictureInput) {
+        uploadOverlay.addEventListener('click', () => {
+            profilePictureInput.click(); // Gizli dosya inputunu tetikle
+        });
+    }
+
+    // profilePictureInput için olay dinleyicisi (dosya seçildiğinde çalışır)
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                loadingOverlay.classList.add('active');
+                const requestPayload = {
+                    url: 'http://127.0.0.1:8000/doktor/foto_guncelle', // Doktor endpoint'i
+                    method: 'POST',
+                    body: { path: file.name }, // Sadece dosya adını gönderiyoruz
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                };
+
+                try {
+                    // console.log("Profil resmi API'ye gönderiliyor (yol olarak):", requestPayload.url);
+                    const response = await window.electronAPI.sendToBackend(requestPayload);
+                    // console.log("Profil resmi yükleme API yanıtı:", response);
+                    if (response) {
+                        alert('Profil fotoğrafı başarıyla güncellendi.');
+                        await fetchProfilePicturePath(); // Resmi anında güncellemek için yolu tekrar çek
+                        removePhotoXButton.style.display = 'flex'; // Veya 'block', stilinize göre
+                    } else {
+                        alert('Profil fotoğrafı güncellenemedi: ' + (response.detail || response.message || 'Bilinmeyen sunucu hatası.'));
+                    }
+                } catch (error) {
+                    console.error('Profil fotoğrafı yükleme hatası:', error);
+                    alert('Profil fotoğrafı yüklenirken bir istemci tarafı hata oluştu: ' + error.message);
+                } finally {
+                    loadingOverlay.classList.remove('active');
+                }
+            }
+        });
+    }
+
+    // Diğer başlangıç fonksiyonlarını çağır
+    fetchPatients();
+    fetchMessages(); // Bu fonksiyon doktor panelinde uyarıları çekiyor
+    fetchProfilePicturePath(); // Artık doğru atanmış global 'profilePictureElement'ı kullanacak
+    updateProfileSection(); // Hoşgeldiniz mesajını ayarla
+    // ... (doktor paneli için diğer başlangıç ayarları)
+});
+
+    function updateProfileSection() {
+      const lang = document.getElementById('languageSelect').value;
+      const welcomeMessage = document.getElementById('welcomeMessage');
+      const loggedInTc = localStorage.getItem('loggedInTc') || '-';
+      welcomeMessage.textContent = `${translations[lang].welcome}${loggedInTc}`;
+    }
+
+    function updateDateTime() {
+      const datetimeDisplay = document.getElementById('datetimeDisplay');
+      const lang = document.getElementById('languageSelect').value;
+      const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Europe/Istanbul'
+      };
+      const date = new Date();
+      datetimeDisplay.textContent = date.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', options);
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    });
+
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
+      if (tabId === 'patients-tab') {
+        fetchPatients();
+        renderPatients(patients);
+      }
+    }
+
+    function toggleSymptom(element) {
+      const isSelected = element.getAttribute('data-selected') === 'true';
+      element.setAttribute('data-selected', !isSelected);
+    }
+
+
+async function addBloodSugarEntry(event) {
+  event.preventDefault();
+  const lang = document.getElementById('languageSelect').value;
+  const loadingOverlay = document.getElementById('loadingOverlay');
+
+  const patientTc = document.getElementById('bloodSugarPatientTc').value.trim();
+  const measurementDate = document.getElementById('bloodSugarDate').value;
+  const measurementTime = document.getElementById('bloodSugarTime').value;
+  const bloodSugar = document.getElementById('bloodSugarValue').value;
+
+  // Doğrulama
+  if (!patientTc || !measurementDate || !measurementTime || bloodSugar === '') {
+    alert(translations[lang].error || "Lütfen tüm zorunlu alanları doldurun.");
+    return;
+  }
+
+  if (patientTc.length !== 11 || isNaN(patientTc)) {
+    alert(translations[lang].error || "Hasta T.C. Kimlik Numarası 11 haneli ve sayısal olmalıdır.");
+    return;
+  }
+
+  if (isNaN(bloodSugar) || parseFloat(bloodSugar) < 0) {
+    alert(translations[lang].error || "Kan şekeri değeri geçerli bir sayı olmalıdır ve 0'dan küçük olamaz.");
+    return;
+  }
+
+  loadingOverlay.classList.add('active');
+
+  const data = {
+    url: 'http://127.0.0.1:8000/doktor/seker_ekle', // Doktor için endpoint
+    method: 'POST',
+    body: {
+      hasta_tc: patientTc,
+      tarih: measurementDate,
+      saat: measurementTime,
+      kan_sekeri: bloodSugar // Sayı olarak gönder
+    }
+  };
+
+  console.log("Doktor tarafından kan şekeri ekleme verisi:", data);
+
+  try {
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log("FastAPI yanıtı (kan şekeri ekleme):", response);
+
+    if (response && (response.message === 'Kan şekeri verisi başarıyla eklendi!')) {
+      alert('Hastanın kan şekeri verisi başarıyla eklendi');
+      document.getElementById('bloodSugarEntryForm').reset(); // Formu sıfırla
+
+      // Ana hasta listesini ve grafiklerini güncelle
+      await fetchPatients(); // Hastaların son kan şekeri bilgisi güncellenmiş olabilir
+
+      // Eğer grafikler sekmesinde bu hasta görüntüleniyorsa, grafiği de güncelle
+      if (currentChartPatientTc === patientTc) {
+        await fetchPatientDataForCharts();
+      }
+
+      // Eğer insülin önerisi varsa göster
+      if (response.insulin_suggestion) {
+          alert("💉 İnsülin Önerisi:\n" + response.insulin_suggestion);
+      }
+
+      if (parseInt(response.measure_lenght) <= 3){
+        alert("Yetersiz veri! Ortalama hesaplaması güvenilir değildir.")
+      }
+      
+    } else if(response.message === "Veri kaydedildi ancak ortalama hesabına dahil edilmeyecektir lütfen istenen aralıkta girin!"){
+      alert(response.message);
+    } else if (response && response.detail) {
+      alert(translations[lang].error || "Kan şekeri eklenemedi: " + response.detail);
+    } else {
+      alert(translations[lang].error || "Kan şekeri eklenemedi: Beklenmedik sunucu yanıtı.");
+    }
+  } catch (error) {
+    console.error("Kan şekeri ekleme hatası:", error.message);
+    alert(translations[lang].error || "Kan şekeri eklenirken bir hata oluştu: " + error.message);
+  } finally {
+    fetchPatients();
+    fetchMessages();
+    loadingOverlay.classList.remove('active');
+  }
+}
+
+
+
+let patients = []; // Başlangıçta boş, API'den dolacak
+
+// Sayfa yüklendiğinde hastaları API'den çek
+async function fetchPatients() {
+  const lang = document.getElementById('languageSelect').value;
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  loadingOverlay.classList.add('active');
+
+  try {
+    const data = {
+      url: 'http://127.0.0.1:8000/doktor/hastalar',
+      method : 'GET',
+      body: {
+          
+      } // Eğer doktor TC'si gerekiyorsa buraya eklenebilir
+    };
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log("API'den gelen hastalar:", response);
+
+    if (response && Array.isArray(response)) {
+      patients = response.map((patient, index) => ({
+        id: index + 1, // Hasta ID'si 1'den başlayarak artıyor
+        name: patient.name,
+        tc: patient.tc,
+        bloodSugar: patient.kan_sekeri || 0,
+        symptoms: patient.belirtiler || [],
+        diet: patient.diyet || '-',
+        exercise: patient.egzersiz || '-'
+      }));
+      renderPatients(patients);
+      populatePatientSelect(); // Hasta seçimi dropdown'ını güncelle
+    } else {
+      alert(translations[lang].error || "Hastalar yüklenemedi.");
+    }
+  } catch (error) {
+    console.error("Hata:", error.message);
+    alert(translations[lang].error || "Hastalar çekilirken hata oluştu: " + error.message);
+  } finally {
+    loadingOverlay.classList.remove('active');
+  }
+}
+
+let alerts = [];
+
+async function fetchMessages() {
+  const lang = document.getElementById('languageSelect').value;
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  loadingOverlay.classList.add('active');
+
+  try {
+    const data = {
+      url: 'http://127.0.0.1:8000/doktor/uyarilar',
+      method: 'GET'
+    };
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log("API'den gelen mesajlar:", response);
+
+    alerts = []; // Mevcut uyarıları sıfırla
+    if (Array.isArray(response)) {
+      response.forEach((alertGroup, groupIndex) => {
+        if (Array.isArray(alertGroup)) {
+          alertGroup.forEach((alert, alertIndex) => {
+            let timeString = 'Saat belirtilmemiş';
+            
+            const totalSeconds = alert.saat;
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            
+
+            alerts.push({
+              id: `${groupIndex + 1}-${alertIndex + 1}`,
+              date: alert.tarih ? `${alert.tarih.toString()} ${timeString}` : 'Tarih belirtilmemiş',
+              message: alert.message || 'Mesaj içeriği yok',
+              read: alert.read || false
+            });
+          });
+        }
+      });
+    }
+
+    renderAlerts();
+    updateAlertBadge();
+    if (alerts.length === 0) {
+      document.getElementById('warningList').innerHTML = '<p>Uyarı bulunmamaktadır.</p>';
+    }
+  } catch (error) {
+    console.error("Hata:", error.message);
+    alert(translations[lang].error || "Mesajlar çekilirken hata oluştu: " + error.message);
+    document.getElementById('warningList').innerHTML = '<p>Uyarı bulunmamaktadır.</p>';
+  } finally {
+    loadingOverlay.classList.remove('active');
+  }
+}
+
+
+// Add this global variable near your other global variables like 'patients', 'alerts'
+let currentChartPatientTc = null;
+let patientData = []; 
+let bloodSugarDataForChart = []; // Sadece kan şekeri verileri için
+let complianceDataForChart = {}; // Diyet ve egzersiz bilgisi için { dietName, dietStatus, exerciseName, exerciseStatus }
+let selectedPatientId = null; // Grafiği çizilecek hastanın ID'si (opsiyonel, TC daha önemli olabilir)
+// Grafik instance'ları
+let bloodSugarChartInstance = null;
+let dietChartInstance = null;
+let exerciseChartInstance = null;
+
+// New function to trigger data fetching from the chart section's input
+function triggerFetchPatientData() {
+  const lang = document.getElementById('languageSelect').value;
+  const tcInput = document.getElementById('chartPatientTcInput').value.trim();
+
+  if (!tcInput || tcInput.length !== 11 || isNaN(tcInput)) {
+    alert(lang === 'tr' ? "Lütfen geçerli bir 11 haneli T.C. Kimlik Numarası girin." : "Please enter a valid 11-digit TC ID number.");
+    // Kan şekeri grafiği için placeholder
+    document.getElementById('bloodSugarChartPlaceholder').textContent = lang === 'tr' ? 'Geçersiz T.C. Kimlik Numarası.' : 'Invalid TC ID Number.';
+    document.getElementById('bloodSugarChartPlaceholder').style.display = 'block';
+    document.getElementById('bloodSugarChartContainer').style.display = 'none';
+    document.getElementById('bloodSugarChartTitle').style.display = 'none';
+    // Diyet/Egzersiz grafikleri için placeholder
+    document.getElementById('complianceChartsPlaceholder').textContent = lang === 'tr' ? 'Geçersiz T.C. Kimlik Numarası.' : 'Invalid TC ID Number.';
+    document.getElementById('complianceChartsPlaceholder').style.display = 'block';
+    document.getElementById('complianceChartsGrid').style.display = 'none';
+    document.getElementById('complianceChartsTitle').style.display = 'none';
+
+    if (bloodSugarChartInstance) bloodSugarChartInstance.destroy();
+    if (dietChartInstance) dietChartInstance.destroy();
+    if (exerciseChartInstance) exerciseChartInstance.destroy();
+    bloodSugarChartInstance = dietChartInstance = exerciseChartInstance = null;
+    return;
+  }
+
+  const patient = patients.find(p => p.tc === tcInput);
+  if (!patient) {
+    alert(lang === 'tr' ? "Bu T.C. Kimlik Numarasına sahip hasta bulunamadı." : "Patient with this TC ID not found.");
+    selectedPatientId = null;
+    currentChartPatientTc = null;
+    bloodSugarDataForChart = [];
+    complianceDataForChart = {};
+    renderCharts();
+    return;
+  }
+
+  selectedPatientId = patient.id; // Bu ID'yi kullanmasanız bile tutabilirsiniz
+  currentChartPatientTc = tcInput;
+
+  // Placeholder'ları "Yükleniyor..." olarak ayarla
+  document.getElementById('bloodSugarChartPlaceholder').textContent = lang === 'tr' ? "Veriler yükleniyor..." : "Loading data...";
+  document.getElementById('bloodSugarChartPlaceholder').style.display = 'block';
+  document.getElementById('bloodSugarChartContainer').style.display = 'none';
+  document.getElementById('bloodSugarChartTitle').style.display = 'none';
+
+  document.getElementById('complianceChartsPlaceholder').textContent = lang === 'tr' ? "Veriler yükleniyor..." : "Loading data...";
+  document.getElementById('complianceChartsPlaceholder').style.display = 'block';
+  document.getElementById('complianceChartsGrid').style.display = 'none';
+  document.getElementById('complianceChartsTitle').style.display = 'none';
+
+  if (bloodSugarChartInstance) bloodSugarChartInstance.destroy();
+  if (dietChartInstance) dietChartInstance.destroy();
+  if (exerciseChartInstance) exerciseChartInstance.destroy();
+  bloodSugarChartInstance = dietChartInstance = exerciseChartInstance = null;
+
+  fetchPatientDataForCharts(); // Fonksiyon adını değiştirdim karışmaması için
+}
+
+async function fetchPatientDataForCharts() {
+  const lang = document.getElementById('languageSelect').value;
+  const loadingOverlay = document.getElementById('loadingOverlay');
+
+  if (!currentChartPatientTc) {
+    console.warn("fetchPatientDataForCharts called without a patient TC.");
+    bloodSugarDataForChart = [];
+    complianceDataForChart = {};
+    renderCharts(); // Show placeholders
+    return;
+  }
+
+  loadingOverlay.classList.add('active');
+
+  try {
+    const dataToBackend = {
+      url: 'http://127.0.0.1:8000/doktor/gunluk_veri',
+      method: 'POST',
+      body: {
+        hasta_tc: currentChartPatientTc
+      }
+    };
+    console.log("Fetching chart data for TC:", currentChartPatientTc, "with payload:", dataToBackend);
+
+    const response = await window.electronAPI.sendToBackend(dataToBackend);
+    console.log("API'den gelen grafik verileri:", response);
+
+    // Initialize data variables
+    bloodSugarDataForChart = [];
+    complianceDataForChart = {
+        dietName: 'Belirtilmemiş',
+        dietStatus: 'bilgi_yok',
+        exerciseName: 'Belirtilmemiş',
+        exerciseStatus: 'bilgi_yok'
+    };
+
+    let bloodSugarDataValid = false;
+    let complianceDataAvailable = false;
+
+    // Process kan_şekeri data if available and valid
+    if (response && response.kan_şekeri && Array.isArray(response.kan_şekeri)) {
+      bloodSugarDataForChart = response.kan_şekeri.map(entry => ({
+        date: entry.tarih || '-',
+        time: entry.saat || '-',
+        bloodSugar: entry['kan_şekeri'] ? parseFloat(entry['kan_şekeri']) : null,
+        period: entry.zaman || '-',
+        insulin: entry.insülin || '-'
+      }));
+      bloodSugarDataValid = true; // Mark blood sugar data as validly processed (even if empty)
+
+      if (bloodSugarDataForChart.length === 0) {
+        document.getElementById('bloodSugarChartPlaceholder').textContent = lang === 'tr' ? `Seçilen hasta (${currentChartPatientTc}) için kan şekeri verisi bulunamadı.` : `No blood sugar data found for the selected patient (${currentChartPatientTc}).`;
+      }
+    } else {
+      // Kan şekeri data is missing or in wrong format
+      document.getElementById('bloodSugarChartPlaceholder').textContent = lang === 'tr' ? `Kan şekeri verileri yüklenemedi veya format hatalı (Hasta TC: ${currentChartPatientTc}).` : `Could not load blood sugar data or format is incorrect (Patient TC: ${currentChartPatientTc}).`;
+      console.error("Invalid or missing kan_şekeri data from API for charts:", response);
+    }
+
+    // Process diyet_egzersiz data if available and valid
+    if (response && response.diyet_egzersiz && Array.isArray(response.diyet_egzersiz) && response.diyet_egzersiz.length > 0) {
+      const complianceInfo = response.diyet_egzersiz[0];
+      complianceDataForChart = {
+        dietName: complianceInfo.diyet_adı || 'Belirtilmemiş',
+        dietStatus: String(complianceInfo.diyet_durum || 'bilgi_yok').toLowerCase(),
+        exerciseName: complianceInfo.egzersiz_adı || 'Belirtilmemiş',
+        exerciseStatus: String(complianceInfo.egzersiz_durum || 'bilgi_yok').toLowerCase()
+      };
+      complianceDataAvailable = true;
+    } else {
+      // Diyet/Egzersiz data is empty or missing, use default placeholder message
+      document.getElementById('complianceChartsPlaceholder').textContent = lang === 'tr' ? `Seçilen hasta (${currentChartPatientTc}) için diyet/egzersiz bilgisi bulunamadı.` : `No diet/exercise info found for the selected patient (${currentChartPatientTc}).`;
+       // No need to log an error if it's just an empty array, it's a valid state.
+       if (response && response.diyet_egzersiz && !Array.isArray(response.diyet_egzersiz)) {
+           console.error("Invalid diyet_egzersiz data format from API (not an array):", response.diyet_egzersiz);
+       }
+    }
+
+    // If primary data (blood sugar) couldn't be processed, show general error for compliance as well
+    if (!bloodSugarDataValid) {
+        document.getElementById('complianceChartsPlaceholder').textContent = lang === 'tr' ? `Diyet/Egzersiz verileri de işlenemedi (Hasta TC: ${currentChartPatientTc}).` : `Diet/exercise data could also not be processed (Patient TC: ${currentChartPatientTc}).`;
+    }
+
+
+  } catch (error) {
+    console.error('Grafik verisi çekme hatası:', error.message, error);
+    bloodSugarDataForChart = []; // Reset on error
+    complianceDataForChart = { dietName: 'Belirtilmemiş', dietStatus: 'bilgi_yok', exerciseName: 'Belirtilmemiş', exerciseStatus: 'bilgi_yok' }; // Reset on error
+    document.getElementById('bloodSugarChartPlaceholder').textContent = lang === 'tr' ? `Veriler çekilirken hata oluştu: ${error.message}` : `Error fetching data: ${error.message}`;
+    document.getElementById('complianceChartsPlaceholder').textContent = lang === 'tr' ? `Diyet/Egzersiz verileri çekilirken hata oluştu: ${error.message}` : `Error fetching diet/exercise data: ${error.message}`;
+  } finally {
+    loadingOverlay.classList.remove('active');
+    renderCharts(); // Render based on the processed data or placeholders
+  }
+}
+
+    function showSection(sectionId) {
+  document.querySelectorAll('.section').forEach(section => {
+    section.style.display = section.id === sectionId ? 'block' : 'none';
+  });
+  document.querySelectorAll('.sidebar li').forEach(li => {
+    li.classList.toggle('active', li.onclick.toString().includes(sectionId));
+  });
+
+  if (sectionId === 'charts') {
+    document.getElementById('chartPatientTcInput').value = ''; // TC giriş alanını temizle
+    currentChartPatientTc = null;
+    selectedPatientId = null;
+    bloodSugarDataForChart = []; // Grafik verilerini temizle
+    complianceDataForChart = {}; // Grafik verilerini temizle
+    renderCharts(); // Placeholder'ları ve boş grafikleri göster
+  }
+  // ... (diğer sekmeler için kodunuz)
+  if (sectionId === 'inbox') {
+    populatePatientSelect();
+    loadMessages(); // Mesajları yeniden yükle
+  }
+  if (sectionId === 'alerts') {
+    updateAlertBadge();
+    renderAlerts();
+  }
+  if (sectionId === 'patients') {
+    // fetchPatients(); // Eğer hastalar sık güncellenmiyorsa her seferinde çekmek gerekmeyebilir
+    renderPatients(patients);
+  }
+}
+
+    function updateAlertBadge() {
+      const unreadCount = alerts.filter(alert => !alert.read).length;
+      const badge = document.getElementById('alertBadge');
+      badge.textContent = unreadCount;
+      badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+
+    function renderPatients(filteredPatients) {
+      const tbody = document.getElementById('patientTableBody');
+      tbody.innerHTML = '';
+      filteredPatients.forEach(patient => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${patient.name}</td>
+          <td>${patient.tc}</td>
+          <td>${patient.bloodSugar} mg/dL</td>
+          <td>${patient.symptoms.join(', ') || '-'}</td>
+          <td>
+            <div id="dietDisplay${patient.id}" style="display: block;">${patient.diet || '-'}</div>
+            <div id="dietEdit${patient.id}" style="display: none;" class="edit-form">
+              <select id="editDiet${patient.id}">
+                <option value="Dengeli Beslenme" ${patient.diet === 'Dengeli Beslenme' ? 'selected' : ''}>Dengeli Beslenme</option>
+                <option value="Az Şekerli Diyet" ${patient.diet === 'Az Şekerli Diyet' ? 'selected' : ''}>Az Şekerli Diyet</option>
+                <option value="Şekersiz Diyet" ${patient.diet === 'Şekersiz Diyet' ? 'selected' : ''}>Şekersiz Diyet</option>
+              </select>
+            </div>
+          </td>
+          <td>
+            <div id="exerciseDisplay${patient.id}" style="display: block;">${patient.exercise || '-'}</div>
+            <div id="exerciseEdit${patient.id}" style="display: none;" class="edit-form">
+              <select id="editExercise${patient.id}">
+                <option value="Yok" ${patient.exercise === 'Yok' ? 'selected' : ''}>Yok</option>
+                <option value="Yürüyüş" ${patient.exercise === 'Yürüyüş' ? 'selected' : ''}>Yürüyüş</option>
+                <option value="Klinik Egzersiz" ${patient.exercise === 'Klinik Egzersiz' ? 'selected' : ''}>Klinik Egzersiz</option>
+              </select>
+            </div>
+          </td>
+          <td>
+            <button class="edit" onclick="toggleEdit(${patient.id})">Düzenle</button>
+            <button onclick="saveEdit(${patient.id})" style="display: none;" id="saveEdit${patient.id}">${translations.tr.save}</button>
+            <button onclick="viewPatientDetails(${patient.id})">Detay</button>
+            <button class="delete" onclick="deletePatient(${patient.id})">Sil</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function toggleEdit(patientId) {
+      const dietDisplay = document.getElementById(`dietDisplay${patientId}`);
+      const dietEdit = document.getElementById(`dietEdit${patientId}`);
+      const exerciseDisplay = document.getElementById(`exerciseDisplay${patientId}`);
+      const exerciseEdit = document.getElementById(`exerciseEdit${patientId}`);
+      const editButton = document.querySelector(`#patientTableBody button.edit[onclick='toggleEdit(${patientId})']`);
+      const saveButton = document.getElementById(`saveEdit${patientId}`);
+
+      const isEditing = dietEdit.style.display === 'block';
+      if (isEditing) {
+        dietDisplay.style.display = 'block';
+        dietEdit.style.display = 'none';
+        exerciseDisplay.style.display = 'block';
+        exerciseEdit.style.display = 'none';
+        editButton.textContent = translations[document.getElementById('languageSelect').value].edit;
+        saveButton.style.display = 'none';
+      } else {
+        dietDisplay.style.display = 'none';
+        dietEdit.style.display = 'block';
+        exerciseDisplay.style.display = 'none';
+        exerciseEdit.style.display = 'block';
+        editButton.textContent = translations[document.getElementById('languageSelect').value].edit;
+        saveButton.style.display = 'inline-block';
+      }
+    }
+
+    async function saveEdit(patientId) {
+      const lang = document.getElementById('languageSelect').value;
+      const diet = document.getElementById(`editDiet${patientId}`).value;
+      const exercise = document.getElementById(`editExercise${patientId}`).value;
+
+      const patient = patients.find(p => p.id === patientId);
+      if (!patient) {
+        alert(translations[lang].error || "Hasta bulunamadı.");
+        return;
+      }
+
+      const data = {
+        url: 'http://127.0.0.1:8000/doktor/diyet_egzersiz_ekle',
+        body: {
+          hasta_tc: patient.tc,
+          diyet: diet,
+          egzersiz: exercise
+        }
+      };
+
+      try {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.classList.add('active');
+
+        const response = await window.electronAPI.sendToBackend(data);
+        console.log("Backend yanıtı:", response);
+
+        if (response.message === 'Diyet ve egzersiz başarıyla eklendi') {
+          //patient.diet = diet;
+          //patient.exercise = exercise;
+          await fetchPatients();
+          renderPatients(patients); // Tablodaki güncellemeleri yansıtmak için renderPatients çağrılıyor
+          /*if (selectedPatientId === patientId) {
+            renderCharts(); // Seçili hasta grafiklerini güncelle
+          }*/
+          alert(translations[lang].edit_success);
+        } else {
+          alert("Güncelleme başarısız: " + (response.detail || "Sunucu hatası."));
+        }
+      } catch (error) {
+        console.error("Hata:", error.message);
+        alert(translations[lang].error || "Güncelleme sırasında bir hata oluştu: " + error.message);
+      } finally {
+        loadingOverlay.classList.remove('active');
+      }
+    }
+
+    document.getElementById('filterButton').addEventListener('click', filterPatients);
+
+    async function filterPatients() {
+  const lang = document.getElementById('languageSelect').value;
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  loadingOverlay.classList.add('active');
+
+  const bloodSugarFilter = document.getElementById('bloodSugarFilter').value;
+  const symptomFilter = document.getElementById('symptomFilter').value;
+
+  let kan_sekeri_min = "";
+  let kan_sekeri_max = "";
+
+  if (bloodSugarFilter === 'hipo') {
+    kan_sekeri_min = "0";
+    kan_sekeri_max = "69";
+  } else if (bloodSugarFilter === 'normal') {
+    kan_sekeri_min = "70";
+    kan_sekeri_max = "110";
+  } else if (bloodSugarFilter === 'ustnormal') {
+    kan_sekeri_min = "120";
+    kan_sekeri_max = "190";
+  } else if (bloodSugarFilter === 'hiper') {
+    kan_sekeri_min = "191";
+    kan_sekeri_max = "1000"; // Varsayılan yüksek bir sınır
+  }
+
+  // Belirti için ilk harfi büyük yapmaya gerek yok, backend nasıl bekliyorsa öyle gönderin.
+  // API dokümantasyonunuza göre burayı ayarlayın. Eğer backend büyük harf bekliyorsa:
+  // const belirti = symptomFilter ? symptomFilter.charAt(0).toUpperCase() + symptomFilter.slice(1) : "";
+  const belirti = symptomFilter || ""; // Eğer boşsa boş string gönder
+
+  const dataToBackend = {
+    url: 'http://127.0.0.1:8000/doktor/veri_filtrele', // Backend API endpoint'iniz
+    method: 'POST',
+    body: {
+      kan_sekeri_min: kan_sekeri_min,
+      kan_sekeri_max: kan_sekeri_max,
+      belirti: belirti
+    }
+  };
+
+  console.log("Filtreleme için backend'e gönderilen veri:", dataToBackend);
+
+  try {
+    const response = await window.electronAPI.sendToBackend(dataToBackend);
+    console.log("Filtreleme API yanıtı:", response);
+
+    if (response && Array.isArray(response)) {
+      // API'den dönen veriyi, `patients` dizisindeki formatla eşleşecek şekilde map'leyin.
+      // Eğer API direkt `patients` formatında dönüyorsa bu map'lemeye gerek kalmaz.
+      const filteredPatientsData = response.map((patient, index) => ({
+        id: index + 1, // Veya API'den gelen bir ID varsa onu kullanın
+        name: patient.name || patient.isim, // API'den gelen alan adlarına göre ayarlayın
+        tc: patient.tc,
+        bloodSugar: patient.kan_sekeri || 0,
+        symptoms: patient.belirtiler || [],
+        diet: patient.diyet || '-',
+        exercise: patient.egzersiz || '-'
+      }));
+      renderPatients(filteredPatientsData); // Filtrelenmiş hastaları tabloya yansıt
+    } else if (response && response.detail) { // FastAPI'den hata mesajı gelirse
+      alert(translations[lang].error || `Filtreleme başarısız: ${response.detail}`);
+      renderPatients([]); // Hata durumunda tabloyu boşalt
+    } else {
+      alert(translations[lang].error || "Filtreleme sırasında beklenmedik bir yanıt alındı veya veri bulunamadı.");
+      renderPatients([]); // Hata durumunda veya boş sonuçta tabloyu boşalt
+    }
+  } catch (error) {
+    console.error('Filtreleme sırasında hata oluştu:', error.message);
+    alert(translations[lang].error || "Filtreleme sırasında bir hata oluştu: " + error.message);
+    renderPatients([]); // Hata durumunda tabloyu boşalt
+  } finally {
+    loadingOverlay.classList.remove('active');
+  }
+}
+
+
+async function addPatient(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('patientName').value.trim();
+  const tc = document.getElementById('patientTc').value.trim();
+  const password = document.getElementById('patientPassword').value.trim();
+  const email = document.getElementById('patientEmail').value.trim() || null;
+  const gender = document.getElementById('patientGender').value || null;
+  const dob = document.getElementById('patientDob').value || null;
+  const symptomsContainer = document.getElementById('patientSymptoms');
+  const lang = document.getElementById('languageSelect')?.value || 'tr';
+
+  const selectedSymptoms = Array.from(symptomsContainer.querySelectorAll('.symptom-item[data-selected="true"]'))
+    .map(el => el.getAttribute('data-value'));
+
+  // Doğrulama
+  if (!name || !tc || !password) {
+    alert(translations[lang].error || "Lütfen tüm zorunlu alanları doldurun.");
+    return;
+  }
+
+  if (tc.length !== 11 || isNaN(tc)) {
+    alert(translations[lang].error || "T.C. Kimlik Numarası 11 haneli olmalıdır.");
+    return;
+  }
+
+  if (password.length < 6) {
+    alert(translations[lang].password_minlength || "Şifre en az 6 karakter olmalıdır.");
+    return;
+  }
+
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  loadingOverlay.classList.add('active');
+
+  const data = {
+    url: 'http://127.0.0.1:8000/doktor/hasta_ekle',
+    method: 'POST',
+    body: {
+      isim: name,
+      tc: tc,
+      sifre: password,
+      belirtiler: selectedSymptoms,
+      mail: email,
+      cinsiyet: gender,
+      dogumtarihi: dob,
+      profilresmi: null
+    }
+  };
+
+  console.log("Hasta ekleme verisi:", data);
+
+  try {
+    const response = await window.electronAPI.sendToBackend(data);
+    console.log("FastAPI yanıtı:", response);
+
+    if (response.message === 'Hasta başarıyla eklendi!') {
+      const newPatient = {
+        id: patients.length + 1,
+        name: name,
+        tc: tc,
+        symptoms: selectedSymptoms,
+        diet: '-',
+        exercise: '-'
+      };
+      patients.push(newPatient);
+      alert(translations[lang].success || "Hasta başarıyla eklendi!");
+      document.getElementById('addPatientForm').reset();
+      await fetchPatients();
+      renderPatients(patients);
+      populatePatientSelect();
+    } else {
+      alert(translations[lang].error || "Hasta eklenemedi: " + (response.detail || "Sunucu hatası."));
+    }
+  } catch (error) {
+    console.error("Hata:", error.message);
+    alert(translations[lang].error || "Hasta eklenirken bir hata oluştu: " + error.message);
+  } finally {
+    loadingOverlay.classList.remove('active');
+  }
+}
+
+
+async function sendToBackend(data) {
+  try {
+    console.log('Sending to backend:', JSON.stringify(data, null, 2));
+    const result = await window.electron.sendToBackend(data);
+    console.log('Backend response:', result);
+    alert('Hasta başarıyla eklendi!');
+    document.getElementById('addPatientForm').reset(); // Reset form after success
+  } catch (error) {
+    console.error('Backend error:', error.message);
+    alert('Bir hata oluştu: ' + error.message);
+  }
+}
+
+
+    function deletePatient(patientId) {
+      const lang = document.getElementById('languageSelect').value;
+      if (!confirm(translations[lang].confirm_delete)) return;
+      patients = patients.filter(patient => patient.id !== patientId);
+      localStorage.setItem('patients', JSON.stringify(patients));
+      renderPatients(patients);
+      if (selectedPatientId === patientId) {
+        selectedPatientId = null;
+        renderCharts();
+      }
+      alert(translations[lang].delete_success);
+    }
+
+    function viewPatientDetails(patientId) {
+      selectedPatientId = patientId;
+      showSection('charts');
+      renderCharts();
+    }
+
+    function renderAlerts() {
+  const lang = document.getElementById('languageSelect').value;
+  const warningList = document.getElementById('warningList');
+  warningList.innerHTML = ''; // Listeyi temizle
+  if (alerts.length === 0) {
+    warningList.innerHTML = '<p>Uyarı bulunmamaktadır.</p>';
+    return;
+  }
+  alerts.forEach(alert => {
+    const li = document.createElement('li');
+    li.textContent = `${alert.date}: ${alert.message}`;
+    warningList.appendChild(li);
+  });
+}
+
+function renderCharts() {
+  const lang = document.getElementById('languageSelect').value;
+  // selectedPatient'i her zaman currentChartPatientTc üzerinden bul
+  const selectedPatient = patients.find(p => p.tc === currentChartPatientTc);
+
+  // Kan Şekeri Grafik Elemanları
+  const bloodSugarChartTitleEl = document.getElementById('bloodSugarChartTitle');
+  const bloodSugarChartContainer = document.getElementById('bloodSugarChartContainer');
+  const bloodSugarChartPlaceholder = document.getElementById('bloodSugarChartPlaceholder');
+  // const bloodSugarCtx = document.getElementById('bloodSugarChart').getContext('2d'); // Canvas context'i grafik çizileceği zaman al
+
+  // Diyet ve Egzersiz Grafik Elemanları
+  const complianceChartsTitleEl = document.getElementById('complianceChartsTitle');
+  const complianceChartsGrid = document.getElementById('complianceChartsGrid'); // Bu ID'li element HTML'de olmalı
+  const complianceChartsPlaceholder = document.getElementById('complianceChartsPlaceholder');
+  // const dietCtx = document.getElementById('dietComplianceChart').getContext('2d');
+  // const exerciseCtx = document.getElementById('exerciseComplianceChart').getContext('2d');
+
+
+  // Önceki grafikleri temizle
+  if (bloodSugarChartInstance) {
+    bloodSugarChartInstance.destroy();
+    bloodSugarChartInstance = null;
+  }
+  if (dietChartInstance) {
+    dietChartInstance.destroy();
+    dietChartInstance = null;
+  }
+  if (exerciseChartInstance) {
+    exerciseChartInstance.destroy();
+    exerciseChartInstance = null;
+  }
+
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  Chart.defaults.color = isDarkMode ? '#e0e0e0' : '#666';
+  Chart.defaults.borderColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+  // HASTA SEÇİLİ Mİ (TC girilmiş ve patients listesinde bulunmuşsa)
+  if (currentChartPatientTc && selectedPatient) {
+    // KAN ŞEKERİ GRAFİĞİ
+    if (bloodSugarDataForChart && bloodSugarDataForChart.length > 0) {
+      bloodSugarChartContainer.style.display = 'block';
+      bloodSugarChartPlaceholder.style.display = 'none';
+      bloodSugarChartTitleEl.style.display = 'block';
+      bloodSugarChartTitleEl.textContent = translations[lang].chart_blood_sugar_patient.replace('{name}', selectedPatient.name);
+
+      const bloodSugarCtx = document.getElementById('bloodSugarChart').getContext('2d'); // Context'i burada al
+      const chartLabels = bloodSugarDataForChart.map(d => { // 'd' here is an item from bloodSugarDataForChart
+      let timeLabel = d.time; // Access d.time (e.g., '07:02')
+      if (timeLabel && typeof timeLabel === 'string' && timeLabel.includes(':') && timeLabel.split(':').length >= 2) {
+        timeLabel = timeLabel.substring(0, 5); // Format to HH:MM
+      } else {
+        timeLabel = '--:--'; // Default if time is missing/invalid
+      }
+
+      const dateLabel = d.date || '---- -- --'; // Access d.date (e.g., '2025-01-01')
+
+      // Access d.period and include it in the label if it's valid
+      const periodLabel = d.period && d.period !== 'Geçersiz' && d.period !== '-' ? ` (${d.period})` : '';
+
+      return `${dateLabel} ${timeLabel}${periodLabel}`; // Example: "2025-01-01 07:02 (Sabah)"
+    });
+      const chartDataPoints = bloodSugarDataForChart.map(d => d.bloodSugar); // Bu zaten null veya sayı olmalı
+
+      bloodSugarChartInstance = new Chart(bloodSugarCtx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: translations[lang].blood_sugar || 'Kan Şekeri',
+            data: chartDataPoints,
+            borderColor: '#08a250',
+            backgroundColor: 'rgba(8, 162, 80, 0.2)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3, // Noktaları biraz daha görünür yapalım
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: false, title: { display: true, text: `${translations[lang].blood_sugar || 'Kan Şekeri'} (mg/dL)` }},
+                x: { title: { display: true, text: translations[lang].date_time || 'Tarih ve Saat' }, ticks: { autoSkip: true, maxTicksLimit: 15, maxRotation: 45, minRotation: 0 }}
+            },
+            plugins: { legend: { display: true, position: 'top' }, tooltip: { enabled: true, mode: 'index', intersect: false, callbacks: { label: context => `${context.dataset.label || ''}: ${context.parsed.y == null ? 'N/A' : context.parsed.y + ' mg/dL'}`, title: context => context[0].label }}}
+        }
+      });
+    } else { // Kan şekeri verisi yoksa veya fetch başarısızsa placeholder göster
+      bloodSugarChartContainer.style.display = 'none';
+      bloodSugarChartTitleEl.style.display = 'none';
+      bloodSugarChartPlaceholder.style.display = 'block';
+      // Placeholder metni zaten fetchPatientDataForCharts içinde ayarlandı.
+      // Eğer fetch hiç çağrılmadıysa veya TC girilmediyse farklı bir mesaj gösterilebilir, ama o durum aşağıda.
+      if (bloodSugarDataForChart.length === 0 && document.getElementById('bloodSugarChartPlaceholder').textContent.includes("yükleniyor")) { // Eğer yükleniyor da kalmışsa
+           bloodSugarChartPlaceholder.textContent = lang === 'tr' ? `${selectedPatient.name} için kan şekeri verisi bulunamadı.` : `No blood sugar data found for ${selectedPatient.name}.`;
+      }
+    }
+
+if (
+  complianceDataForChart &&
+  Object.keys(complianceDataForChart).length > 0 &&
+  (complianceDataForChart.dietStatus !== 'bilgi_yok' || complianceDataForChart.exerciseStatus !== 'bilgi_yok')
+) {
+  complianceChartsGrid.style.display = 'grid';
+  complianceChartsPlaceholder.style.display = 'none';
+  complianceChartsTitleEl.style.display = 'block';
+  complianceChartsTitleEl.textContent = `${selectedPatient.name} - ${translations[lang].chart_compliance || 'Diyet ve Egzersiz Takibi'}`;
+
+  const ctx = document.getElementById('combinedComplianceChart').getContext('2d');
+
+  const dietApplied = complianceDataForChart.dietStatus === 'uygulandi' ? 1 : 0;
+  const dietNotApplied = complianceDataForChart.dietStatus === 'uygulanmadi' ? 1 : 0;
+  const exerciseDone = complianceDataForChart.exerciseStatus === 'yapildi' ? 1 : 0;
+  const exerciseNotDone = complianceDataForChart.exerciseStatus === 'yapilmadi' ? 1 : 0;
+
+  const hasData = dietApplied + dietNotApplied + exerciseDone + exerciseNotDone > 0;
+
+  const labels = ['Uyuldu/Yapıldı', 'Uyulmadı/Yapılmadı'];
+
+  const dietDataset = {
+    label: complianceDataForChart.dietName || 'Diyet',
+    data: hasData ? [dietApplied, dietNotApplied] : [0, 0],
+    backgroundColor: ['#1db954', '#a8e6a1'] // yeşilin koyu ve açık tonu
+  };
+
+  const exerciseDataset = {
+    label: complianceDataForChart.exerciseName || 'Egzersiz',
+    data: hasData ? [exerciseDone, exerciseNotDone] : [0, 0],
+    backgroundColor: ['#0f8a40', '#9cd9a2'] // yeşil tonlar
+  };
+
+  if (window.combinedComplianceChartInstance) {
+    window.combinedComplianceChartInstance.destroy();
+  }
+
+  window.combinedComplianceChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [dietDataset, exerciseDataset]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: hasData
+            ? `${complianceDataForChart.dietName} & ${complianceDataForChart.exerciseName} Durumu`
+            : 'Diyet ve Egzersiz Durumu (Belirsiz)',
+          font: { size: 14 }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 1,
+          ticks: {
+            stepSize: 1,
+            callback: value => (value === 1 ? '✓' : '0')
+          }
+        }
+      }
+    }
+  });
+
+} else {
+  // Veri yoksa placeholder göster
+  complianceChartsGrid.style.display = 'none';
+  complianceChartsTitleEl.style.display = 'none';
+  complianceChartsPlaceholder.style.display = 'block';
+
+  if (
+    Object.keys(complianceDataForChart).length === 0 &&
+    document.getElementById('complianceChartsPlaceholder').textContent.includes('yükleniyor')
+  ) {
+    complianceChartsPlaceholder.textContent =
+      lang === 'tr'
+        ? `${selectedPatient.name} için diyet/egzersiz bilgisi bulunamadı.`
+        : `No diet/exercise info for ${selectedPatient.name}.`;
+  } else if (
+    complianceDataForChart.dietStatus === 'bilgi_yok' &&
+    complianceDataForChart.exerciseStatus === 'bilgi_yok'
+  ) {
+    complianceChartsPlaceholder.textContent =
+      lang === 'tr'
+        ? `${selectedPatient.name} için diyet/egzersiz durumu belirtilmemiş.`
+        : `Diet/exercise status not specified for ${selectedPatient.name}.`;
+  }
+}
+  }}
+
+    function populatePatientSelect() {
+      const patientSelect = document.getElementById('patientSelect');
+      patientSelect.innerHTML = '<option value="">Hasta Seçin</option>';
+      patients.forEach(patient => {
+        const option = document.createElement('option');
+        option.value = patient.tc;
+        option.textContent = `${patient.name} (${patient.tc})`;
+        patientSelect.appendChild(option);
+      });
+    }
+
+    function loadMessages() {
+      const patientTc = document.getElementById('patientSelect').value;
+      const messageList = document.getElementById('messageList');
+      const loggedInTc = localStorage.getItem('loggedInTc') || '-';
+      messageList.innerHTML = '';
+
+      if (!patientTc) return;
+
+      const filteredMessages = messages.filter(message =>
+        (message.senderTc === loggedInTc && message.receiverTc === patientTc) ||
+        (message.senderTc === patientTc && message.receiverTc === loggedInTc)
+      );
+
+      filteredMessages.forEach(message => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message-item');
+        if (message.senderTc === patientTc) {
+          messageDiv.classList.add('received');
+        }
+        messageDiv.innerHTML = `
+          <p><strong>${message.senderTc}:</strong> ${message.content}</p>
+          <small>${message.timestamp}</small>
+        `;
+        messageList.appendChild(messageDiv);
+      });
+
+      messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    function sendMessage(event) {
+      event.preventDefault();
+      const lang = document.getElementById('languageSelect').value;
+      const patientTc = document.getElementById('patientSelect').value;
+      const messageContent = document.getElementById('messageContent').value.trim();
+      const loggedInTc = localStorage.getItem('loggedInTc') || '-';
+
+      if (!patientTc) {
+        alert(translations[lang].select_patient_to_message);
+        return;
+      }
+
+      if (!messageContent) {
+        alert(lang === 'tr' ? 'Mesaj içeriği boş olamaz.' : 'Message content cannot be empty.');
+        return;
+      }
+
+      const timestamp = new Date().toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Istanbul'
+      });
+
+      const newMessage = {
+        senderTc: loggedInTc,
+        receiverTc: patientTc,
+        content: messageContent,
+        timestamp: timestamp
+      };
+
+      messages.push(newMessage);
+      localStorage.setItem('messages', JSON.stringify(messages));
+      document.getElementById('messageContent').value = '';
+      loadMessages();
+      alert(translations[lang].message_sent);
+    }
+
+    async function logout() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.classList.add('active');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      window.location.href = 'index.html';
+    }
+
+     
+
+    async function setProfilePictureFromPath(filePath) {
+  document.getElementById("profilePicture").src = filePath;
+}
+
+    // 3. Sunucudan Fotoğraf Yolunu Çeken ve Ekrana Yansıtan Fonksiyon
+    async function fetchProfilePicturePath() {
+        console.log("Fetching doctor's profile picture path...");
+        const requestPayload = {
+            url: 'http://127.0.0.1:8000/doktor/foto_al', // DOKTOR endpoint'i
+            method: 'GET'
+        };
+
+        try {
+            const response = await window.electronAPI.sendToBackend(requestPayload);
+            console.log("Profile picture path API response:", response);
+
+            if (response) {
+                const fileName = response.path;
+                // Sunucudaki static dosyanın tam URL'sini oluştur
+                const fullImageUrl = `http://127.0.0.1:8000/static/image/${fileName}`;
+                setProfilePictureFromPath(fullImageUrl)
+            } else {
+                // Fotoğraf yoksa veya hata varsa placeholder göster
+                profilePictureElement.src = ''; // src'yi temizle
+                profilePictureElement.classList.add('profile-picture-placeholder');
+                profilePictureElement.classList.remove('uploaded');
+                removePhotoXButton.style.display = 'none';
+                console.warn('Profil fotoğrafı yolu alınamadı veya boş döndü.');
+            }
+        } catch (error) {
+            console.error('Profil fotoğrafı yolu çekme hatası:', error);
+            profilePictureElement.src = '';
+            profilePictureElement.classList.add('profile-picture-placeholder');
+            profilePictureElement.classList.remove('uploaded');
+            removePhotoXButton.style.display = 'none';
+        }
+    }
+
+    // 4. Profil Fotoğrafını Kaldırma Fonksiyonu
+    async function removeProfilePicture() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.classList.add('active');
+
+        const requestPayload = {
+            url: 'http://127.0.0.1:8000/doktor/foto_guncelle', // Güncelleme endpoint'ine boş path gönderiyoruz
+            method: 'POST' ,
+            body: { path: "" }, 
+            headers: {
+                'Content-Type': 'application/json',      
+            },
+        };
+
+        try {
+            console.log("Removing profile picture via API:", requestPayload.url);
+            const response = await window.electronAPI.sendToBackend(requestPayload);
+            console.log("Remove picture API response:", response);
+
+            if (response && (response.success || (response.message && response.message.toLowerCase().includes('başarıyla')))) {
+                alert('Profil fotoğrafı başarıyla kaldırıldı.');
+                // UI'ı anında güncelle
+                if (profilePictureInput) {
+                  profilePictureInput.value = null;
+                }
+                profilePictureElement.src = '';
+                profilePictureElement.classList.add('profile-picture-placeholder');
+                profilePictureElement.classList.remove('uploaded');
+                removePhotoXButton.style.display = 'none';
+            } else {
+                alert('Profil fotoğrafı kaldırılamadı: ' + (response.detail || response.message || 'Bilinmeyen sunucu hatası.'));
+            }
+        } catch (error) {
+            console.error('Profil fotoğrafı silme hatası:', error);
+            alert('Profil fotoğrafı silinirken bir istemci tarafı hata oluştu: ' + error.message);
+        } finally {
+            loadingOverlay.classList.remove('active');
+        }
+    }
+
+    
+
+    renderPatients(patients);
+    renderAlerts();
+    renderCharts();
+    updateAlertBadge();
+    document.getElementById('bloodSugarChartPlaceholder').textContent = translations.tr.select_patient;
+    document.getElementById('complianceChartPlaceholder').textContent = translations.tr.select_patient;
+  </script>
+</body>
+</html>
